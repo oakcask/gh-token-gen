@@ -34,48 +34,6 @@ jobs:
         # wanted not to workflow status being failure. 
         continue-on-error: true
 
-  build:
-    strategy:
-        matrix:
-          build:
-            - os: ubuntu-latest
-              target: x86_64-unknown-linux-gnu
-              cross: false
-            - os: ubuntu-latest
-              target: aarch64-unknown-linux-gnu
-              cross: true
-            - os: macos-latest
-              target: aarch64-apple-darwin
-              cross: false
-    runs-on: ${{ matrix.build.os }}
-    needs:
-      - get-next-version
-      - cargo-toml-updated
-    if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
-    env:
-      CARGO: "cargo"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Enable cross
-        run: cargo install cross && echo "CARGO=cross" >> "$GITHUB_ENV"
-        if: matrix.build.cross
-      - run: ${{ env.CARGO }} --locked build --release --target=${{ matrix.build.target }} --bins
-      - name: Prepare artifacts to upload
-        run: |
-          mkdir -p dist/${{ matrix.build.target }}
-          find target/${{ matrix.build.target }}/release -maxdepth 1 \
-            -type f \! -name '.cargo-lock' \! -name '*.d' -print0 \
-            | xargs -I{} -r -0 cp {} dist/${{ matrix.build.target }}/
-          tar -C dist/${{ matrix.build.target }} -czf dist/${{ matrix.build.target }}.tar.gz ./
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.build.target }}.tar.gz
-          path: |
-            dist/${{ matrix.build.target }}.tar.gz
-          if-no-files-found: error
-          retention-days: 1
-
   release:
     runs-on: ubuntu-latest
     concurrency:
@@ -87,14 +45,9 @@ jobs:
     needs:
       - get-next-version
       - cargo-toml-updated
-      - build
     if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: dist
-
       - uses: cycjimmy/semantic-release-action@v4
         with:
           dry_run: ${{ github.ref != 'refs/heads/main' }}
