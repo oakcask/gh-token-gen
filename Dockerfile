@@ -5,7 +5,7 @@ RUN apt-get update && apt-get -y install pkg-config libssl-dev && rm -rf /var/li
 RUN cargo --locked install --path .
 
 FROM debian:12-slim
-RUN apt-get update && apt-get -y install libssl3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get -y install libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/local/cargo/bin/gh-token-gen /usr/local/bin/gh-token-gen
 RUN /usr/local/bin/gh-token-gen --help
 ENTRYPOINT ["/usr/local/bin/gh-token-gen"]
