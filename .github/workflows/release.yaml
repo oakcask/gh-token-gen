@@ -34,6 +34,35 @@ jobs:
         # wanted not to workflow status being failure. 
         continue-on-error: true
 
+
+  build:
+    strategy:
+        matrix:
+          build:
+            - os: ubuntu-latest
+    runs-on: ${{ matrix.build.os }}
+    needs:
+      - get-next-version
+      - cargo-toml-updated
+    if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo --locked build --release --bins
+      - id: archive-name
+        run: echo "value=gh-token-gen-${{ runner.arch }}-${{ runner.os }}.tar.gz" >> "$GITHUB_OUTPUT"
+      - name: Prepare artifacts to upload
+        run: |
+          mkdir -p dist/
+          tar -C target/release -czf dist/${{ steps.archive-name.outputs.value }} ./gh-token-gen
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.archive-name.outputs.value }}
+          path: |
+            dist/${{ steps.archive-name.outputs.value }}
+          if-no-files-found: error
+          retention-days: 1
+
   release:
     runs-on: ubuntu-latest
     concurrency:
@@ -45,9 +74,13 @@ jobs:
     needs:
       - get-next-version
       - cargo-toml-updated
+      - build
     if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
       - uses: cycjimmy/semantic-release-action@v4
         with:
           dry_run: ${{ github.ref != 'refs/heads/main' }}
