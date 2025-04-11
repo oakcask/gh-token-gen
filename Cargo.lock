@@ -380,7 +380,7 @@ dependencies = [
 
 [[package]]
 name = "gh-token-gen"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "base64ct",
  "clap",
