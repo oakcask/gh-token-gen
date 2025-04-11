@@ -44,7 +44,7 @@ jobs:
     needs:
       - get-next-version
       - cargo-toml-updated
-    if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
+    # if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -75,7 +75,7 @@ jobs:
       - get-next-version
       - cargo-toml-updated
       - build
-    if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
+    # if: ${{ needs.get-next-version.outputs.new-release-published == 'true' && needs.cargo-toml-updated.outputs.updated == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
