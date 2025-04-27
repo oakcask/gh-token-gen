@@ -23,7 +23,7 @@ impl Env {
     }
 
     fn get(&self, key: &str) -> Option<String> {
-        if let Some(value) = Reflect::get(&self.0, &JsValue::from_str(key)).ok() {
+        if let Ok(value) = Reflect::get(&self.0, &JsValue::from_str(key)) {
             if value.is_string() {
                 value.as_string()
             } else {
