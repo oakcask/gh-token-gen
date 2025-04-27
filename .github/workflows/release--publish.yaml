@@ -8,6 +8,9 @@ on:
       # to develop or debug this workflow
       - .github/workflows/release--publish.yaml
 
+permissions:
+  contents: write
+
 jobs:
   get-version:
     runs-on: ubuntu-latest
