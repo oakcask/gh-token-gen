@@ -20,7 +20,7 @@ jobs:
       group: ${{ github.workflow }}
     steps:
       - id: gh-token-gen
-        uses: oakcask/gh-token-gen@v1.0.2
+        uses: oakcask/gh-token-gen@v2.0.0
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
