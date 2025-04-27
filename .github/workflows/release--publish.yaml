@@ -86,3 +86,5 @@ jobs:
           gh release create "v${{ needs.get-version.outputs.full }}" \
             --title "v${{ needs.get-version.outputs.full }}" \
             --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
