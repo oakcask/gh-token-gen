@@ -4,6 +4,7 @@ use http::Uri;
 use log::{error, info};
 mod env;
 mod error;
+mod fs;
 mod logging;
 mod sign;
 use logging::{add_mask, set_output};
