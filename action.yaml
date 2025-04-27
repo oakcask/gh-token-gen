@@ -15,12 +15,5 @@ outputs:
   token:
     description: Generated token
 runs:
-  using: docker
-  image: Dockerfile
-  env:
-    INPUT_APP_ID: ${{ inputs.app-id }}
-    INPUT_PRIVATE_KEY: ${{ inputs.private-key }}
-    INPUT_EXPIRE: ${{ inputs.expire-in }}
-  args:
-    - "--gh-out"
-    - "token"
+  using: node20
+  main: index.cjs

@@ -14,12 +14,20 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: baptiste0928/cargo-install@v3
+        with:
+          crate: wasm-pack
+          version: "0.13.1"
+      - run: wasm-pack build --target=nodejs . --locked
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - id: generate-token
-        run: cargo --locked run -- -o token
+        run: node index.cjs
         env:
-          INPUT_APP_ID: ${{ secrets.CLIENT_ID }}
-          INPUT_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          INPUT_EXPIRE: 180
+          INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
+          INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
+          INPUT_EXPIRE-IN: "180"
       - run: cargo fmt
       - uses: int128/update-generated-files-action@v2
         with:
@@ -39,12 +47,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-      - run: cargo --locked test
-
-  image:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - id: repo
-        run: echo "name=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}" >> $GITHUB_OUTPUT
-      - run: docker build . --file Dockerfile --platform linux/amd64 --tag ${{ steps.repo.outputs.name }}:$(date +%s)
+      - uses: baptiste0928/cargo-install@v3
+        with:
+          crate: wasm-pack
+          version: "0.13.1"
+      - run: wasm-pack test --node
