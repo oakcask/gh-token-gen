@@ -1,0 +1,19 @@
+name: gh-token-gen
+description: generate GitHub application token
+inputs:
+  app-id:
+    description: GitHub Application ID (or Client ID)
+    required: true
+  private-key:
+    description: The application's PEM-encoded private key
+    required: true
+  expire-in:
+    description: Set ttl for generated token in specified seconds. Limited to maximum 600 seconds.
+    required: false
+    default: "120"
+outputs:
+  token:
+    description: Generated token
+runs:
+  using: node20
+  main: index.cjs
