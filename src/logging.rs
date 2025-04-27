@@ -1,7 +1,7 @@
-use std::{fs::File, io::Write};
+use std::io::Write;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-use crate::error::Error;
+use crate::{env, error::Error, fs};
 
 #[wasm_bindgen]
 extern "C" {
@@ -47,13 +47,18 @@ pub fn add_mask(value: &str) {
 }
 
 pub fn set_output(name: &str, value: &str) -> Result<(), Error> {
-    if let Ok(path) = std::env::var("GITHUB_OUTPUT") {
-        let mut f = File::options()
-            .append(true)
-            .create(true)
-            .open(path)
-            .map_err(Error::new)?;
-        writeln!(&mut f, "{}={}", name, value).map_err(Error::new)?;
+    if let Some(path) = env::var("GITHUB_OUTPUT") {
+        let data = format!("{}={}", name, value);
+        // it maybe better to open the file at startup then buffer the writes
+        fs::write_file_sync(
+            &path,
+            data.as_bytes(),
+            &fs::FileWriteOptions {
+                encoding: "utf8",
+                mode: 0o666,
+                flag: "a",
+            },
+        )?
     } else {
         log(&format!("::set-output name={}::{}", name, value));
     }
