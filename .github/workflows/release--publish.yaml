@@ -43,7 +43,7 @@ jobs:
       - run: |
           mkdir -p dist/pkg
           cp -t dist/pkg/ pkg/*.js pkg/*.wasm
-          cp -t dist/ index.cjs action.yaml LICENSE*
+          cp -t dist/ index.cjs action.yaml LICENSE* *.md
       - uses: actions/upload-artifact@v4
         with:
           name: dist
