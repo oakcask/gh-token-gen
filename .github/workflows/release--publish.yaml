@@ -73,9 +73,11 @@ jobs:
           git tag -a "v${{ needs.get-version.outputs.full }}" -m "v${{ needs.get-version.outputs.full }}"
           git tag -a "v${{ needs.get-version.outputs.semver_major }}" -m "v${{ needs.get-version.outputs.semver_major }}"
           git tag -a "v${{ needs.get-version.outputs.semver_minor }}" -m "v${{ needs.get-version.outputs.semver_minor }}"
-          git push -f origin "v${{ needs.get-version.outputs.full }}"
-          git push -f origin "v${{ needs.get-version.outputs.semver_major }}"
-          git push -f origin "v${{ needs.get-version.outputs.semver_minor }}"
+          git push origin "v${{ needs.get-version.outputs.full }}"
+          git push origin ":v${{ needs.get-version.outputs.semver_major }}" || true
+          git push origin "v${{ needs.get-version.outputs.semver_major }}"
+          git push origin ":v${{ needs.get-version.outputs.semver_minor }}" || true
+          git push origin "v${{ needs.get-version.outputs.semver_minor }}"
 
   release:
     runs-on: ubuntu-latest
