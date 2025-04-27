@@ -71,12 +71,12 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add .
           git commit -m "chore: v${{ needs.get-version.outputs.full }}"
-          git tag -d "v${{ needs.get-version.outputs.semver_major }}" || true
-          git tag -d "v${{ needs.get-version.outputs.semver_minor }}" || true
           git tag -a "v${{ needs.get-version.outputs.full }}" -m "v${{ needs.get-version.outputs.full }}"
-          git tag -a "v${{ needs.get-version.outputs.semver_major }}" -m "v${{ needs.get-version.outputs.semver_major }}"
-          git tag -a "v${{ needs.get-version.outputs.semver_minor }}" -m "v${{ needs.get-version.outputs.semver_minor }}"
           git push origin "v${{ needs.get-version.outputs.full }}"
+          git tag -d "v${{ needs.get-version.outputs.semver_major }}" || true
+          git tag -a "v${{ needs.get-version.outputs.semver_major }}" -m "v${{ needs.get-version.outputs.semver_major }}"
+          git tag -d "v${{ needs.get-version.outputs.semver_minor }}" || true
+          git tag -a "v${{ needs.get-version.outputs.semver_minor }}" -m "v${{ needs.get-version.outputs.semver_minor }}"
           git push origin ":v${{ needs.get-version.outputs.semver_major }}" || true
           git push origin "v${{ needs.get-version.outputs.semver_major }}"
           git push origin ":v${{ needs.get-version.outputs.semver_minor }}" || true
