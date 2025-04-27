@@ -24,4 +24,3 @@ jobs:
           skip-github-release: true
           skip-github-pull-request: ${{ github.ref != 'refs/heads/main' }}
           skip-labeling: ${{ github.ref != 'refs/heads/main' }}
-          target-branch: release
