@@ -3,13 +3,34 @@ name = "gh-token-gen"
 version = "1.0.2"
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 base64ct = { version = "1.7.3", features = ["alloc"] }
-clap = { version = "4.5.37", features = ["derive", "env"] }
-env_logger = "0.11.8"
 http = "1.3.1"
 log = "0.4.27"
-openssl = { version = "0.10.72" }
-reqwest = { version = "0.12.15", features = ["json", "blocking"] }
+reqwest = { version = "0.12.15", features = ["json"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
+web-sys = { version = "0.3.77", features = [
+    "Window",
+    "Crypto",
+    "SubtleCrypto",
+    "CryptoKey"] }
+pem = "3.0.5"
+wasm-bindgen = { version = "0.2.100", features = ["std"] }
+wasm-bindgen-futures = "0.4.50"
+chrono = { version = "0.4.40", default-features = false, features = ["wasmbind", "js-sys", "now"] }
+serde-wasm-bindgen = "0.6.5"
+rsa = { version = "0.9.8", features = ["pem"] }
+pkcs8 = { version = "0.10.2", features = ["pem"] }
+pkcs1 = { version = "0.7.5", features = ["pkcs8"] }
+macros = { path = "./macros" }
+
+[dependencies.getrandom]
+version = "*"
+features = ["js"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.50"

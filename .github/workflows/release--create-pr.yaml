@@ -1,0 +1,27 @@
+name: Release / Create PR
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      # to debug this workflow
+      - .github/workflows/release--create-pr.yaml
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: rust
+          skip-github-release: true
+          skip-github-pull-request: ${{ github.ref != 'refs/heads/main' }}
+          skip-labeling: ${{ github.ref != 'refs/heads/main' }}
+          target-branch: release
