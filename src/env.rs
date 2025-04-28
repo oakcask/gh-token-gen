@@ -7,23 +7,9 @@ extern "C" {
     static ENV: JsValue;
 }
 
-pub struct Env(JsValue);
-
-fn env() -> Env {
-    Env::new()
-}
-
 pub fn var(key: &str) -> Option<String> {
-    env().get(key)
-}
-
-impl Env {
-    fn new() -> Self {
-        Self(ENV.with(|env| env.clone()))
-    }
-
-    fn get(&self, key: &str) -> Option<String> {
-        if let Ok(value) = Reflect::get(&self.0, &JsValue::from_str(key)) {
+    ENV.with(|env| {
+        if let Ok(value) = Reflect::get(env, &JsValue::from_str(key)) {
             if value.is_string() {
                 value.as_string()
             } else {
@@ -32,5 +18,23 @@ impl Env {
         } else {
             None
         }
+    })
+}
+
+#[cfg(test)]
+fn set_var(key: &str, value: &str) {
+    ENV.with(|env| {
+        Reflect::set(env, &JsValue::from_str(key), &JsValue::from_str(value)).unwrap();
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[wasm_bindgen_test::wasm_bindgen_test]
+    fn test_var() {
+        set_var("TEST_KEY", "TEST_VALUE");
+        assert_eq!(var("TEST_KEY"), Some("TEST_VALUE".to_string()));
     }
 }
