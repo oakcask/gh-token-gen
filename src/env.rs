@@ -24,12 +24,7 @@ pub fn var(key: &str) -> Option<String> {
 #[cfg(test)]
 fn set_var(key: &str, value: &str) {
     ENV.with(|env| {
-        Reflect::set(
-            env,
-            &JsValue::from_str(key),
-            &JsValue::from_str(value),
-        )
-        .unwrap();
+        Reflect::set(env, &JsValue::from_str(key), &JsValue::from_str(value)).unwrap();
     });
 }
 
