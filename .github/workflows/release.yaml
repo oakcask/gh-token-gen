@@ -83,10 +83,16 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-tag
     steps:
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v2.0.0
+        with:
+          app-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
       - uses: actions/checkout@v4
         with:
           ref: github-actions
           fetch-depth: 0
+          token: ${{ steps.gh-token-gen.outputs.token }}
       - uses: actions/download-artifact@v4
         with:
           name: dist
