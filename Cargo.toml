@@ -25,7 +25,7 @@ web-sys = { version = "0.3.77", features = [
 pem = "3.0.5"
 wasm-bindgen = { version = "0.2.100", features = ["std"] }
 wasm-bindgen-futures = "0.4.50"
-chrono = { version = "0.4.40", default-features = false, features = ["wasmbind", "js-sys", "now"] }
+chrono = { version = "0.4.41", default-features = false, features = ["wasmbind", "js-sys", "now"] }
 serde-wasm-bindgen = "0.6.5"
 rsa = { version = "0.9.8", features = ["pem"] }
 pkcs8 = { version = "0.10.2", features = ["pem"] }
