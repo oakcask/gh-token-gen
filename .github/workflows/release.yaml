@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/v${{ needs.semantic-release.outputs.version }}-src
+          ref: refs/tags/src/v${{ needs.semantic-release.outputs.version }}
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - uses: baptiste0928/cargo-install@v3
         with:

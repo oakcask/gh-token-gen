@@ -1,6 +1,6 @@
 branches:
   - main
-tagFormat: "v${version}-src"
+tagFormat: "src/v${version}"
 plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
