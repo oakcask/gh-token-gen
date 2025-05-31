@@ -48,6 +48,7 @@ jobs:
       - id: semantic-release
         uses: cycjimmy/semantic-release-action@v4
         with:
+          # renovate: datasource=npm depName=semantic-release
           semantic_version: "24.2.3"
           dry_run: ${{ github.ref != 'refs/heads/main' }}
         env: 
@@ -64,7 +65,8 @@ jobs:
       - uses: baptiste0928/cargo-install@v3
         with:
           crate: wasm-pack
-          version: "0.13.1"
+          # renovate: datasource=crates depName=wasm-pack
+          version: "0.13.1" 
       - run: wasm-pack build --target=nodejs . --locked
       - run: |
           mkdir -p dist/pkg
