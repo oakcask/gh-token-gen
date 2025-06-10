@@ -28,15 +28,15 @@ jobs:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
           INPUT_EXPIRE-IN: "180"
-      - run: cargo fmt
+      - run: cargo --locked fmt
       - uses: int128/update-generated-files-action@v2
         with:
-          commit-message: "style: `cargo fmt`"
+          commit-message: "style: `cargo --locked fmt`"
           token: ${{ steps.generate-token.outputs.token }}
-      - run: cargo clippy --fix
+      - run: cargo --locked clippy --fix
       - uses: int128/update-generated-files-action@v2
         with:
-          commit-message: "fix: `cargo clippy --fix`"
+          commit-message: "fix: `cargo --locked clippy --fix`"
           token: ${{ steps.generate-token.outputs.token }}
 
   test:
