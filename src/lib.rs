@@ -25,7 +25,6 @@ pub async fn start() -> Result<(), JsError> {
 struct Cli {
     app_id: String,
     private_key: String,
-    expire: u32,
     endpoint: String,
     repo: String,
 }
@@ -49,12 +48,6 @@ impl Cli {
         let app_id = get_input!("app-id").ok_or_else(|| Error::from("app-id missing"))?;
         let private_key =
             get_input!("private-key").ok_or_else(|| Error::from("private-key missing"))?;
-        let expire = get_input!("expire-in")
-            .as_ref()
-            .map(|s| s.as_str())
-            .unwrap_or_else(|| "120")
-            .parse::<u32>()
-            .map_err(|_| Error::from("expire-in must be a integer"))?;
         let endpoint =
             env::var("GITHUB_API_URL").unwrap_or_else(|| String::from("https://api.github.com"));
         let repo = env::var("GITHUB_REPOSITORY")
@@ -63,28 +56,26 @@ impl Cli {
         Ok(Self {
             app_id,
             private_key,
-            expire,
             endpoint,
             repo,
         })
     }
 
-    fn create_payload(app_id: String, expire: u32) -> Result<Payload, Error> {
+    fn create_payload(app_id: String) -> Result<Payload, Error> {
         let now = unix_now();
-        let expire_in = if expire > 600 { 600 } else { expire as i64 };
 
         Ok(Payload {
             iss: app_id,
             // 60 seconds in the past to allow for clock drift
             // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app#example-using-ruby-to-generate-a-jwt
             iat: now - 60,
-            exp: now + expire_in,
+            exp: now + 60,
         })
     }
 
     async fn run(self) -> Result<(), Error> {
         let authorization_header = JwtBuilder {
-            payload: Self::create_payload(self.app_id, self.expire)?,
+            payload: Self::create_payload(self.app_id)?,
             pkey: self.private_key,
         }
         .build_authorization_header()

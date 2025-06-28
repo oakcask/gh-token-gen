@@ -27,7 +27,6 @@ jobs:
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
-          INPUT_EXPIRE-IN: "180"
       - run: cargo --locked fmt
       - uses: int128/update-generated-files-action@v2
         with:
