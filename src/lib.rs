@@ -113,10 +113,10 @@ impl JwtBuilder {
         let header = encode_base64_url(HEADER);
         let payload = serde_json::to_string(&self.payload).map_err(Error::new)?;
         let payload = encode_base64_url(payload.as_bytes());
-        let sig = format!("{}.{}", header, payload);
+        let sig = format!("{header}.{payload}");
         let sig = sign_sha256(sig.as_bytes(), &self.pkey).await?;
         let sig = encode_base64_url(&sig);
-        Ok(format!("Bearer {}.{}.{}", header, payload, sig))
+        Ok(format!("Bearer {header}.{payload}.{sig}"))
     }
 }
 
