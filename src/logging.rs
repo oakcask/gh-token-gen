@@ -29,7 +29,7 @@ impl log::Log for Logger {
             };
             let mut buf: Vec<u8> = Vec::new();
             let msg = record.args();
-            write!(buf, "::{}::{}", level, msg).unwrap();
+            write!(buf, "::{level}::{msg}").unwrap();
             log(&unsafe { String::from_utf8_unchecked(buf) });
         }
     }
@@ -43,12 +43,12 @@ pub fn init() {
 }
 
 pub fn add_mask(value: &str) {
-    log(&format!("::add-mask::{}", value));
+    log(&format!("::add-mask::{value}"));
 }
 
 pub fn set_output(name: &str, value: &str) -> Result<(), Error> {
     if let Some(path) = env::var("GITHUB_OUTPUT") {
-        let data = format!("{}={}", name, value);
+        let data = format!("{name}={value}");
         // it maybe better to open the file at startup then buffer the writes
         fs::write_file_sync(
             &path,
@@ -60,7 +60,7 @@ pub fn set_output(name: &str, value: &str) -> Result<(), Error> {
             },
         )?
     } else {
-        log(&format!("::set-output name={}::{}", name, value));
+        log(&format!("::set-output name={name}::{value}"));
     }
     Ok(())
 }

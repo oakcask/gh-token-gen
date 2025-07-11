@@ -24,7 +24,7 @@ impl From<String> for Error {
 impl From<JsValue> for Error {
     fn from(value: JsValue) -> Self {
         Error {
-            message: format!("{:?}", value),
+            message: format!("{value:?}"),
         }
     }
 }
