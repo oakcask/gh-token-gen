@@ -97,7 +97,7 @@ jobs:
           token: ${{ steps.gh-token-gen.outputs.token }}
       - run: |
           rm -rf $(ls -1)
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
       - run: git diff --stat || true
