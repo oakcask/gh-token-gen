@@ -11,5 +11,5 @@ outputs:
   token:
     description: Generated token
 runs:
-  using: node20
+  using: node24
   main: index.cjs
