@@ -24,9 +24,7 @@ pub async fn start() -> Result<(), JsError> {
 #[derive(Debug)]
 enum Run {
     Main,
-    Post {
-        access_token: AccessToken,
-    }
+    Post { access_token: AccessToken },
 }
 
 #[derive(Debug)]
@@ -35,7 +33,7 @@ struct Cli {
     private_key: String,
     endpoint: String,
     repo: String,
-    run: Run
+    run: Run,
 }
 
 use macros::{input_var, input_var_underscore, state_var};
@@ -126,7 +124,9 @@ impl Cli {
                     installation_id: access_token.installation_id,
                     token: access_token.token,
                     client: reqwest::Client::new(),
-                }.execute().await
+                }
+                .execute()
+                .await
             }
         }
     }
@@ -135,7 +135,8 @@ impl Cli {
 impl Run {
     fn from_env() -> Result<Self, Error> {
         if let Some(access_token) = get_state!("access_token") {
-            let access_token: AccessToken = serde_json::from_str(&access_token).map_err(Error::new)?;
+            let access_token: AccessToken =
+                serde_json::from_str(&access_token).map_err(Error::new)?;
             Ok(Self::Post { access_token })
         } else {
             Ok(Self::Main)
@@ -241,10 +242,7 @@ impl AccessTokenBuilder {
     async fn build(self) -> Result<AccessToken, Error> {
         let reponame = self.repo.split('/').nth(1).unwrap();
         let installation_id = self.get_installation_id().await?;
-        let path = format!(
-            "/app/installations/{}/access_tokens",
-            installation_id
-        );
+        let path = format!("/app/installations/{}/access_tokens", installation_id);
         let api = Uri::builder()
             .scheme(
                 self.endpoint
@@ -283,7 +281,10 @@ impl AccessTokenBuilder {
         } else {
             let res: AccessTokenResponse = res.json().await.map_err(Error::new)?;
             add_mask(&res.token);
-            Ok(AccessToken { installation_id, token: res.token })
+            Ok(AccessToken {
+                installation_id,
+                token: res.token,
+            })
         }
     }
 }
@@ -292,14 +293,12 @@ struct RemoveAccessTokenRequest {
     endpoint: Uri,
     token: String,
     installation_id: u64,
-    client: reqwest::Client
+    client: reqwest::Client,
 }
 
 impl RemoveAccessTokenRequest {
     async fn execute(self) -> Result<(), Error> {
-        let path = format!(
-            "/app/installations/{}/access_tokens", self.installation_id
-        );
+        let path = format!("/app/installations/{}/access_tokens", self.installation_id);
         let api = Uri::builder()
             .scheme(
                 self.endpoint
@@ -327,7 +326,7 @@ impl RemoveAccessTokenRequest {
             .send()
             .await
             .map_err(Error::new)?;
-        Ok(())        
+        Ok(())
     }
 }
 
