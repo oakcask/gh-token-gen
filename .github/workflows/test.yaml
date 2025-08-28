@@ -21,7 +21,7 @@ jobs:
       - run: wasm-pack build --target=nodejs . --locked
       - uses: actions/setup-node@v4
         with:
-          node-version: 24.6.0
+          node-version: 24.7.0
       - id: generate-token
         run: node index.cjs
         env:
