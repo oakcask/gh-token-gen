@@ -48,7 +48,7 @@ pub fn add_mask(value: &str) {
 
 pub fn set_output(name: &str, value: &str) -> Result<(), Error> {
     if let Some(path) = env::var("GITHUB_OUTPUT") {
-        let data = format!("{name}={value}");
+        let data = format!("{name}={value}\n");
         // it maybe better to open the file at startup then buffer the writes
         fs::write_file_sync(
             &path,
@@ -61,6 +61,25 @@ pub fn set_output(name: &str, value: &str) -> Result<(), Error> {
         )?
     } else {
         log(&format!("::set-output name={name}::{value}"));
+    }
+    Ok(())
+}
+
+pub fn save_state(name: &str, value: &str) -> Result<(), Error> {
+    if let Some(path) = env::var("GITHUB_STATE") {
+        let data = format!("{name}={value}\n");
+        // it maybe better to open the file at startup then buffer the writes
+        fs::write_file_sync(
+            &path,
+            data.as_bytes(),
+            &fs::FileWriteOptions {
+                encoding: "utf8",
+                mode: 0o666,
+                flag: "a",
+            },
+        )?
+    } else {
+        log(&format!("::save-state name={name}::{value}"));
     }
     Ok(())
 }
