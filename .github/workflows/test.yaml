@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 24.7.0
       - id: generate-token
-        run: node index.cjs
+        run: GITHUB_STATE=${GITHUB_OUTPUT} node index.cjs
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
@@ -37,7 +37,11 @@ jobs:
         with:
           commit-message: "fix: `cargo --locked clippy --fix`"
           token: ${{ steps.generate-token.outputs.token }}
-
+      - run: node index.cjs
+        env:
+          INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
+          INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
+          STATE_access_token: ${{ steps.generate-token.outputs.access_token }}
   test:
     runs-on: ubuntu-latest
     concurrency:

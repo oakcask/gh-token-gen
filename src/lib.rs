@@ -1,7 +1,7 @@
 use base64ct::{Base64UrlUnpadded, Encoding};
 use error::Error;
 use http::Uri;
-use log::{error, info};
+use log::error;
 mod env;
 mod error;
 mod fs;
@@ -22,20 +22,41 @@ pub async fn start() -> Result<(), JsError> {
 }
 
 #[derive(Debug)]
+enum Run {
+    Main,
+    Post {
+        access_token: AccessToken,
+    }
+}
+
+#[derive(Debug)]
 struct Cli {
     app_id: String,
     private_key: String,
     endpoint: String,
     repo: String,
+    run: Run
 }
 
-use macros::{input_var, input_var_underscore};
+use macros::{input_var, input_var_underscore, state_var};
+
+use crate::logging::save_state;
 
 macro_rules! get_input {
     ($name:expr) => {
         if let Some(value) = env::var(input_var!($name)) {
             Some(value)
         } else if let Some(value) = env::var(input_var_underscore!($name)) {
+            Some(value)
+        } else {
+            None
+        }
+    };
+}
+
+macro_rules! get_state {
+    ($name:expr) => {
+        if let Some(value) = env::var(state_var!($name)) {
             Some(value)
         } else {
             None
@@ -58,6 +79,7 @@ impl Cli {
             private_key,
             endpoint,
             repo,
+            run: Run::from_env()?,
         })
     }
 
@@ -74,24 +96,50 @@ impl Cli {
     }
 
     async fn run(self) -> Result<(), Error> {
-        let authorization_header = JwtBuilder {
-            payload: Self::create_payload(self.app_id)?,
-            pkey: self.private_key,
-        }
-        .build_authorization_header()
-        .await?;
-        add_mask(&authorization_header);
+        match self.run {
+            Run::Main => {
+                let authorization_header = JwtBuilder {
+                    payload: Self::create_payload(self.app_id)?,
+                    pkey: self.private_key,
+                }
+                .build_authorization_header()
+                .await?;
+                add_mask(&authorization_header);
 
-        let access_token = AccessTokenBuilder {
-            endpoint: Uri::try_from(self.endpoint).map_err(Error::new)?,
-            repo: self.repo,
-            authorization_header,
-            client: reqwest::Client::new(),
-        }
-        .build()
-        .await?;
+                let access_token = AccessTokenBuilder {
+                    endpoint: Uri::try_from(self.endpoint).map_err(Error::new)?,
+                    repo: self.repo,
+                    authorization_header,
+                    client: reqwest::Client::new(),
+                }
+                .build()
+                .await?;
 
-        set_output("token", &access_token)
+                set_output("token", &access_token.token)?;
+                add_mask(&access_token.token);
+                let state = serde_json::to_string(&access_token).map_err(Error::new)?;
+                save_state("access_token", &state)
+            }
+            Run::Post { access_token } => {
+                RemoveAccessTokenRequest {
+                    endpoint: Uri::try_from(self.endpoint).map_err(Error::new)?,
+                    installation_id: access_token.installation_id,
+                    token: access_token.token,
+                    client: reqwest::Client::new(),
+                }.execute().await
+            }
+        }
+    }
+}
+
+impl Run {
+    fn from_env() -> Result<Self, Error> {
+        if let Some(access_token) = get_state!("access_token") {
+            let access_token: AccessToken = serde_json::from_str(&access_token).map_err(Error::new)?;
+            Ok(Self::Post { access_token })
+        } else {
+            Ok(Self::Main)
+        }
     }
 }
 
@@ -142,6 +190,12 @@ struct AccessTokenResponse {
     token: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct AccessToken {
+    installation_id: u64,
+    token: String,
+}
+
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 impl AccessTokenBuilder {
@@ -180,16 +234,16 @@ impl AccessTokenBuilder {
             Err(Error::new(e))
         } else {
             let res: InstallationResponse = res.json().await.map_err(Error::new)?;
-            info!("found installation id: {}", res.id);
             Ok(res.id)
         }
     }
 
-    async fn build(self) -> Result<String, Error> {
+    async fn build(self) -> Result<AccessToken, Error> {
         let reponame = self.repo.split('/').nth(1).unwrap();
+        let installation_id = self.get_installation_id().await?;
         let path = format!(
             "/app/installations/{}/access_tokens",
-            self.get_installation_id().await?
+            installation_id
         );
         let api = Uri::builder()
             .scheme(
@@ -229,8 +283,51 @@ impl AccessTokenBuilder {
         } else {
             let res: AccessTokenResponse = res.json().await.map_err(Error::new)?;
             add_mask(&res.token);
-            Ok(res.token)
+            Ok(AccessToken { installation_id, token: res.token })
         }
+    }
+}
+
+struct RemoveAccessTokenRequest {
+    endpoint: Uri,
+    token: String,
+    installation_id: u64,
+    client: reqwest::Client
+}
+
+impl RemoveAccessTokenRequest {
+    async fn execute(self) -> Result<(), Error> {
+        let path = format!(
+            "/app/installations/{}/access_tokens", self.installation_id
+        );
+        let api = Uri::builder()
+            .scheme(
+                self.endpoint
+                    .scheme()
+                    .expect("endpoint (GITHUB_API_URL) must contain scheme")
+                    .as_str(),
+            )
+            .authority(
+                self.endpoint
+                    .authority()
+                    .expect("endpoint (GITHUB_API_URL) must contain authority")
+                    .as_str(),
+            )
+            .path_and_query(path)
+            .build()
+            .map_err(Error::new)?;
+
+        let _ = self
+            .client
+            .delete(api.to_string())
+            .header("Accept", "application/vnd.github+json")
+            .header("User-Agent", USER_AGENT)
+            .header("X-GitHub-Api-Version", "2022-11-28")
+            .header("Authorization", format!("Bearer {}", self.token))
+            .send()
+            .await
+            .map_err(Error::new)?;
+        Ok(())        
     }
 }
 

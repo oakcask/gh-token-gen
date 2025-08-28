@@ -21,3 +21,11 @@ pub fn input_var_underscore(input: TokenStream) -> TokenStream {
     let var_name = var_name.replace(" ", "_").replace("-", "_");
     Literal::string(&var_name).to_string().parse().unwrap()
 }
+
+#[proc_macro]
+pub fn state_var(input: TokenStream) -> TokenStream {
+    let lit = parse_macro_input!(input as LitStr);
+    let name = lit.value();
+    let var_name = format!("STATE_{}", name);
+    Literal::string(&var_name).to_string().parse().unwrap()
+}

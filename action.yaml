@@ -13,3 +13,4 @@ outputs:
 runs:
   using: node24
   main: index.cjs
+  post: index.cjs
