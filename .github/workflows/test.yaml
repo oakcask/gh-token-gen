@@ -19,7 +19,7 @@ jobs:
           crate: wasm-pack
           version: "0.13.1"
       - run: wasm-pack build --target=nodejs . --locked
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24.7.0
       - id: generate-token
