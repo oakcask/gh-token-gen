@@ -17,7 +17,7 @@ log = "0.4.28"
 reqwest = { version = "0.12.23", features = ["json"] }
 serde = { version = "1.0.225", features = ["derive"] }
 serde_json = "1.0.145"
-web-sys = { version = "0.3.78", features = [
+web-sys = { version = "0.3.80", features = [
     "Crypto",
     "SubtleCrypto",
     "CryptoKey"] }
