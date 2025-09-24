@@ -36,4 +36,4 @@ version = "*"
 features = ["js"]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.53"
+wasm-bindgen-test = "0.3.54"
