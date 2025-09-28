@@ -46,7 +46,7 @@ jobs:
           commit-message: "chore: prepare v${{ needs.get-next-version.outputs.new-release-version }}"
           token: ${{ steps.gh-token-gen.outputs.token }}
       - id: semantic-release
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v5
         with:
           # renovate: datasource=npm depName=semantic-release
           semantic_version: "24.2.9"
