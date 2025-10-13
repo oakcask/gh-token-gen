@@ -21,7 +21,7 @@ jobs:
       - run: wasm-pack build --target=nodejs . --locked
       - uses: actions/setup-node@v5
         with:
-          node-version: 24.9.0
+          node-version: 24.10.0
       - id: generate-token
         run: GITHUB_STATE=${GITHUB_OUTPUT} node index.cjs
         env:
