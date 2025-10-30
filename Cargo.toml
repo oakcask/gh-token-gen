@@ -22,7 +22,7 @@ web-sys = { version = "0.3.81", features = [
     "SubtleCrypto",
     "CryptoKey"] }
 pem = "3.0.6"
-wasm-bindgen = { version = "0.2.104", features = ["std"] }
+wasm-bindgen = { version = "0.2.105", features = ["std"] }
 wasm-bindgen-futures = "0.4.54"
 chrono = { version = "0.4.42", default-features = false, features = ["wasmbind", "js-sys", "now"] }
 serde-wasm-bindgen = "0.6.5"
