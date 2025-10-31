@@ -68,7 +68,7 @@ jobs:
           mkdir -p dist/pkg
           cp -t dist/pkg/ pkg/*.js pkg/*.wasm || true
           cp -t dist/ index.cjs action.yaml LICENSE* *.md || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist/*
