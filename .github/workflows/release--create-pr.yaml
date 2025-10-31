@@ -1,0 +1,40 @@
+name: Release / Create Pull Request
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      # to debug this workflow
+      - .github/workflows/release--create-pr.yaml
+      - .releaserc.yaml
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  get-next-version:
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4
+
+  create:
+    concurrency:
+      group: ${{ github.workflow }}-semantic-release
+    needs: get-next-version
+    runs-on: ubuntu-latest
+    if: needs.get-next-version.outputs.new-release-published == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: EricCrosson/install-github-release-binary@v2
+        with:
+          targets: semantic-release-cargo/semantic-release-cargo@v2.2.96
+      - run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v3.1.9
+        with:
+          app-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+      - uses: int128/update-generated-files-action@v2
+        with:
+          title: "chore: prepare v${{ needs.get-next-version.outputs.new-release-version }}"
+          body: Prepare releasing v${{ needs.get-next-version.outputs.new-release-version }}
+          commit-message: "chore: prepare v${{ needs.get-next-version.outputs.new-release-version }}"
+          token: ${{ steps.gh-token-gen.outputs.token }}
