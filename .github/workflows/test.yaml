@@ -1,6 +1,14 @@
 name: Test
 on:
-  pull_request:
+  pull_request: 
+    paths:
+      # to debug this workflow
+      - .github/workflows/test.yaml
+      - macros/**
+      - src/**
+      - Cargo.lock
+      - Cargo.toml
+      - rust-toolchain.toml
 
 jobs:
   lint:
