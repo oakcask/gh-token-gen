@@ -28,7 +28,7 @@ jobs:
           targets: semantic-release-cargo/semantic-release-cargo@v2.2.96
       - run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
       - id: gh-token-gen
-        uses: oakcask/gh-token-gen@v3.1.9
+        uses: oakcask/gh-token-gen@v3.1.10
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
