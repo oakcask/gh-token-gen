@@ -45,7 +45,7 @@ jobs:
         uses: cycjimmy/semantic-release-action@v5
         with:
           # renovate: datasource=npm depName=semantic-release
-          semantic_version: "25.0.1"
+          semantic_version: "25.0.2"
           dry_run: ${{ github.ref != 'refs/heads/main' }}
         env: 
           GITHUB_TOKEN: ${{ steps.gh-token-gen.outputs.token }}
