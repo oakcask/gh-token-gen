@@ -1,20 +1,16 @@
 use base64ct::{Base64UrlUnpadded, Encoding};
-use error::Error;
 use http::Uri;
 use log::error;
-mod env;
-mod error;
-mod fs;
-mod logging;
 mod sign;
-use logging::{add_mask, set_output};
 use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
+use wasm_actions::{add_mask, env, get_input, get_state, save_state, set_output};
+use wasm_actions_core::error::Error;
 use web_sys::wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub async fn start() -> Result<(), JsError> {
-    logging::init();
+    wasm_actions_log::init().map_err(|e| Error::from(e.to_string()))?;
 
     let cli = Cli::try_from_env()?;
 
@@ -34,32 +30,6 @@ struct Cli {
     endpoint: String,
     repo: String,
     run: Run,
-}
-
-use macros::{input_var, input_var_underscore, state_var};
-
-use crate::logging::save_state;
-
-macro_rules! get_input {
-    ($name:expr) => {
-        if let Some(value) = env::var(input_var!($name)) {
-            Some(value)
-        } else if let Some(value) = env::var(input_var_underscore!($name)) {
-            Some(value)
-        } else {
-            None
-        }
-    };
-}
-
-macro_rules! get_state {
-    ($name:expr) => {
-        if let Some(value) = env::var(state_var!($name)) {
-            Some(value)
-        } else {
-            None
-        }
-    };
 }
 
 impl Cli {
@@ -113,10 +83,10 @@ impl Cli {
                 .build()
                 .await?;
 
-                set_output("token", &access_token.token)?;
+                set_output("token", &access_token.token).await?;
                 add_mask(&access_token.token);
                 let state = serde_json::to_string(&access_token).map_err(Error::new)?;
-                save_state("access_token", &state)
+                save_state("access_token", &state).await
             }
             Run::Post { access_token } => {
                 RemoveAccessTokenRequest {

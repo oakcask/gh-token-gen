@@ -1,7 +1,7 @@
-use crate::error::Error;
 use pem::Pem;
 use rsa::pkcs1::DecodeRsaPrivateKey;
 use serde::Serialize;
+use wasm_actions_core::error::Error;
 use std::str::FromStr;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use wasm_bindgen_futures::JsFuture;
@@ -55,16 +55,16 @@ pub async fn sign_sha256(buf: &[u8], pkey: &str) -> Result<Vec<u8>, Error> {
     let usages = JsValue::from(usages);
     let pkey = crypto
         .import_key_with_object("pkcs8", pkey.as_ref(), &params, false, &usages)
-        .map_err(crate::error::Error::from)?;
+        .map_err(Error::from)?;
     let pkey = JsFuture::from(pkey);
-    let pkey = pkey.await.map_err(crate::error::Error::from)?;
+    let pkey = pkey.await.map_err(Error::from)?;
     let pkey: CryptoKey = pkey.into();
 
     let sign = crypto
         .sign_with_str_and_u8_array("RSASSA-PKCS1-v1_5", &pkey, buf)
-        .map_err(crate::error::Error::from)?;
+        .map_err(Error::from)?;
     let sign = JsFuture::from(sign);
-    let sign: ArrayBuffer = sign.await.map_err(crate::error::Error::from)?.into();
+    let sign: ArrayBuffer = sign.await.map_err(Error::from)?.into();
     let sign = Uint8Array::new_with_byte_offset_and_length(&sign, 0, sign.byte_length());
 
     Ok(sign.to_vec())
