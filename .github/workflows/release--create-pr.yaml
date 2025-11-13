@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   get-next-version:
-    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4
+    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@0cdefe1224944c23645e5131f7a5189672c0df92 # v4
 
   create:
     concurrency:
@@ -22,17 +22,17 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.get-next-version.outputs.new-release-published == 'true'
     steps:
-      - uses: actions/checkout@v5
-      - uses: EricCrosson/install-github-release-binary@v2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      - uses: EricCrosson/install-github-release-binary@3b6741ed37d8bdb9539ff5234f8c3b70805d04b5 # v2
         with:
           targets: semantic-release-cargo/semantic-release-cargo@v2.2.96
       - run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
       - id: gh-token-gen
-        uses: oakcask/gh-token-gen@v3.1.10
+        uses: oakcask/gh-token-gen@3c87b3575883319ffabeaedf8ddc5ced6f67fae1 # v3.1.10
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
-      - uses: int128/update-generated-files-action@v2
+      - uses: int128/update-generated-files-action@cf6ab7b6285ba87a853c47d593af367ea06c8e40 # v2
         with:
           title: "chore: prepare v${{ needs.get-next-version.outputs.new-release-version }}"
           body: Prepare releasing v${{ needs.get-next-version.outputs.new-release-version }}
