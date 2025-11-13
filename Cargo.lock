@@ -18,6 +18,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
+name = "async-once-cell"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4288f83726785267c6f2ef073a3d83dc3f9b81464e9f99898240cced85fce35a"
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -314,7 +320,6 @@ dependencies = [
  "getrandom 0.2.16",
  "http",
  "log",
- "macros",
  "pem",
  "pkcs1",
  "pkcs8",
@@ -323,6 +328,10 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
+ "wasm-actions",
+ "wasm-actions-core",
+ "wasm-actions-log",
+ "wasm-actions-macro",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
@@ -698,13 +707,6 @@ name = "log"
 version = "0.4.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
-
-[[package]]
-name = "macros"
-version = "0.1.0"
-dependencies = [
- "syn",
-]
 
 [[package]]
 name = "memchr"
@@ -1586,6 +1588,46 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
 dependencies = [
  "wit-bindgen-rt",
+]
+
+[[package]]
+name = "wasm-actions"
+version = "0.1.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+dependencies = [
+ "async-once-cell",
+ "log",
+ "wasm-actions-core",
+ "wasm-actions-log",
+ "wasm-actions-macro",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
+name = "wasm-actions-core"
+version = "0.1.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
+name = "wasm-actions-log"
+version = "0.1.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+dependencies = [
+ "log",
+ "wasm-actions-core",
+]
+
+[[package]]
+name = "wasm-actions-macro"
+version = "0.1.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+dependencies = [
+ "syn",
 ]
 
 [[package]]
