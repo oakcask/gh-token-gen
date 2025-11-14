@@ -4,13 +4,13 @@ use log::error;
 mod sign;
 use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
-use wasm_actions::{add_mask, env, get_input, get_state, save_state, set_output};
+use wasm_actions::{add_mask, console, env, get_input, get_state, save_state, set_output};
 use wasm_actions_core::error::Error;
 use web_sys::wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub async fn start() -> Result<(), JsError> {
-    wasm_actions_log::init().map_err(|e| Error::from(e.to_string()))?;
+    console::init().map_err(|e| Error::from(e.to_string()))?;
 
     let cli = Cli::try_from_env()?;
 
