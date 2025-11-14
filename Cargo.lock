@@ -330,7 +330,6 @@ dependencies = [
  "serde_json",
  "wasm-actions",
  "wasm-actions-core",
- "wasm-actions-log",
  "wasm-actions-macro",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -1592,8 +1591,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions"
-version = "0.1.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+version = "0.2.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
 dependencies = [
  "async-once-cell",
  "log",
@@ -1605,8 +1604,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-core"
-version = "0.1.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+version = "0.2.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -1615,8 +1614,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-log"
-version = "0.1.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+version = "0.1.1"
+source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
 dependencies = [
  "log",
  "wasm-actions-core",
@@ -1624,8 +1623,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-macro"
-version = "0.1.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#0fbfa8384391e4ab1edd32053520f798bbe178fd"
+version = "0.2.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
 dependencies = [
  "syn",
 ]
