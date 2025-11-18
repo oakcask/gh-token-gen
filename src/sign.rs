@@ -27,7 +27,10 @@ fn load_pkey(data: &str) -> Result<Vec<u8>, Error> {
     match pem.tag() {
         "PRIVATE KEY" => Ok(pem.into_contents()),
         "RSA PRIVATE KEY" => pkcs1_to_pkcs8(data),
-        _ => Err(Error::from(format!("unsupported key format: {}", pem.tag()))),
+        _ => Err(Error::from(format!(
+            "unsupported key format: {}",
+            pem.tag()
+        ))),
     }
 }
 
