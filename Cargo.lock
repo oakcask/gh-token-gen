@@ -1591,8 +1591,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions"
-version = "0.2.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
+version = "0.2.1"
+source = "git+https://github.com/oakcask/wasm-actions.git#c61fe2041368cb8f3f27611757fb938bb8890d8f"
 dependencies = [
  "async-once-cell",
  "log",
@@ -1604,8 +1604,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-core"
-version = "0.2.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
+version = "0.1.1"
+source = "git+https://github.com/oakcask/wasm-actions.git#c61fe2041368cb8f3f27611757fb938bb8890d8f"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -1614,8 +1614,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-log"
-version = "0.1.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
+version = "0.1.2"
+source = "git+https://github.com/oakcask/wasm-actions.git#c61fe2041368cb8f3f27611757fb938bb8890d8f"
 dependencies = [
  "log",
  "wasm-actions-core",
@@ -1623,8 +1623,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-macro"
-version = "0.2.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#6197bc12623ffefbd30e4474fa50b789851f0664"
+version = "0.1.1"
+source = "git+https://github.com/oakcask/wasm-actions.git#c61fe2041368cb8f3f27611757fb938bb8890d8f"
 dependencies = [
  "syn",
 ]
