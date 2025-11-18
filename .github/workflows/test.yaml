@@ -22,6 +22,8 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1
+        with:
+          cache-key: ${{ hashFiles('Cargo.lock') }}
       - uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3
         with:
           crate: wasm-pack
@@ -58,6 +60,8 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1
+        with:
+          cache-key: ${{ hashFiles('Cargo.lock') }}
       - uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3
         with:
           crate: wasm-pack
