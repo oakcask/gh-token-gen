@@ -23,11 +23,11 @@ struct RsaHashedImportParams {
 }
 
 fn load_pkey(data: &str) -> Result<Vec<u8>, Error> {
-    let pem = Pem::from_str(data).map_err(Error::new)?;
+    let pem = Pem::from_str(data).map_err(|e| Error::from(format!("failed to parse PEM: {e}")))?;
     match pem.tag() {
         "PRIVATE KEY" => Ok(pem.into_contents()),
         "RSA PRIVATE KEY" => pkcs1_to_pkcs8(data),
-        _ => Err(Error::from(format!("unupported key format: {}", pem.tag()))),
+        _ => Err(Error::from(format!("unsupported key format: {}", pem.tag()))),
     }
 }
 
