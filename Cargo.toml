@@ -32,6 +32,8 @@ pkcs1 = { version = "0.7.5", features = ["pkcs8"] }
 wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git" }
 wasm-actions-macro = { git = "https://github.com/oakcask/wasm-actions.git" }
 wasm-actions-core = { git = "https://github.com/oakcask/wasm-actions.git" }
+derive = { path = "./derive"}
+builder = { path = "./builder"}
 
 [dependencies.getrandom]
 version = "*"

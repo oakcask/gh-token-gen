@@ -1,4 +1,6 @@
 use base64ct::{Base64UrlUnpadded, Encoding};
+use builder::Action;
+use derive::{ActionInput, ActionOutput, wasm_action};
 use http::Uri;
 use log::error;
 mod sign;
@@ -6,16 +8,64 @@ use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
 use wasm_actions::{add_mask, console, env, get_input, get_state, save_state, set_output};
 use wasm_actions_core::error::Error;
-use web_sys::wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::prelude::JsError;
+
+#[wasm_action(
+    name = "gh-token-gen",
+    description = "generate GitHub application token"
+)]
+struct GhTokenGen;
 
 #[wasm_bindgen]
-pub async fn start() -> Result<(), JsError> {
+pub async fn main() -> Result<(), JsError> {
     console::init().map_err(|e| Error::from(e.to_string()))?;
 
     let cli = Cli::try_from_env()?;
 
     Ok(cli.run().await?)
 }
+
+#[derive(ActionInput)]
+struct Input {
+    #[input(
+        name = "app-id",
+        required = true,
+        description = "GitHub Application ID (or Client ID)")]
+    app_id: String,
+    #[input(
+        name = "private-key",
+        required = true,
+        description = "The application's PEM-encoded private key")]
+    private_key: String,
+    #[input(env = "GITHUB_API_URL", default = "https://api.github.com")]
+    endpoint: String,
+    #[input(env = "GITHUB_REPOSITORY")]
+    repo: String,   
+}
+// impl ActionInput for Input {
+//   fn parse() -> Result<Self, Error> {
+//     Ok(Self {
+//       #field1 : get_input!(#name).ok_or_else(|| Error::from("{} missing", #name))?.try_into().map_err(|e| Error::from(format!("error while parsing {}: {}", #name, e)))?,
+//       #field2 : env::var(#env).unwrap_or_else(|| Error::from("${} missing", #env))?.try_into().map_err(|e| Error::new(e))?,
+//     })
+//   }
+// }
+
+#[derive(ActionOutput)]
+struct Output {
+    #[output(
+        name = "token",
+        description = "Generated Token")]
+    token: String
+}
+
+impl Action<Input, Output> for GhTokenGen {
+    async fn main(input: Input) -> Result<Output, Error> {
+        todo!()
+    }
+}
+
 
 #[derive(Debug)]
 enum Run {

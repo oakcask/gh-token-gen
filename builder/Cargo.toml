@@ -1,0 +1,12 @@
+[package]
+name = "builder"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+wasm-actions-core = { git = "https://github.com/oakcask/wasm-actions.git" }
+wasm-actions-macro = { git = "https://github.com/oakcask/wasm-actions.git" }
+wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git" }
