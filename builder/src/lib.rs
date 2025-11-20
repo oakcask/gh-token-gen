@@ -1,3 +1,5 @@
+use std::{marker::PhantomData, str::FromStr};
+
 use wasm_actions::get_input;
 use wasm_actions_core::error::Error;
 
@@ -26,4 +28,14 @@ pub trait Action<I: ActionInput, O: ActionOutput> {
     }
 }
 
-pub struct InputParser;
+pub trait ParseInput
+where Self: Sized {
+    fn parse(s: String) -> Result<Self, Error>;
+}
+
+impl<T> ParseInput for T
+where T: FromStr + Sized, <T as FromStr>::Err: std::error::Error {
+    fn parse(s: String) -> Result<T, Error> {
+        s.as_str().parse().map_err(|e| Error::new(e))
+    }
+} 

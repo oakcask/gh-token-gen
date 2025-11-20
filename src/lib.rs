@@ -6,10 +6,8 @@ use log::error;
 mod sign;
 use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
-use wasm_actions::{add_mask, console, env, get_input, get_state, save_state, set_output};
+use wasm_actions::add_mask;
 use wasm_actions_core::error::Error;
-use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::prelude::JsError;
 
 #[wasm_action(
     name = "gh-token-gen",
@@ -17,13 +15,55 @@ use wasm_bindgen::prelude::JsError;
 )]
 struct GhTokenGen;
 
-#[wasm_bindgen]
-pub async fn main() -> Result<(), JsError> {
-    console::init().map_err(|e| Error::from(e.to_string()))?;
+impl GhTokenGen {
+    fn create_payload(app_id: String) -> Result<Payload, Error> {
+        let now = unix_now();
 
-    let cli = Cli::try_from_env()?;
+        Ok(Payload {
+            iss: app_id,
+            // 60 seconds in the past to allow for clock drift
+            // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app#example-using-ruby-to-generate-a-jwt
+            iat: now - 60,
+            exp: now + 60,
+        })
+    }
+}
 
-    Ok(cli.run().await?)
+impl Action<Input, Output> for GhTokenGen {
+    async fn main(input: Input) -> Result<Output, Error> {
+        let authorization_header = JwtBuilder {
+            payload: Self::create_payload(input.app_id)?,
+            pkey: input.private_key,
+        }
+        .build_authorization_header()
+        .await?;
+        add_mask(&authorization_header);
+
+        let access_token = AccessTokenBuilder {
+            endpoint: Uri::try_from(input.endpoint).map_err(Error::new)?,
+            repo: input.repo,
+            authorization_header,
+            client: reqwest::Client::new(),
+        }
+        .build()
+        .await?;
+        add_mask(&access_token.token);
+        Ok(Output { 
+            token: access_token.token,
+            installation_id: access_token.installation_id
+        })
+    }
+
+    async fn post(input: Input, state: Output) -> Result<(), Error> {
+        RemoveAccessTokenRequest {
+            endpoint: Uri::try_from(input.endpoint).map_err(Error::new)?,
+            installation_id: state.installation_id,
+            token: state.token,
+            client: reqwest::Client::new(),
+        }
+        .execute()
+        .await
+    }
 }
 
 #[derive(ActionInput)]
@@ -43,125 +83,14 @@ struct Input {
     #[input(env = "GITHUB_REPOSITORY")]
     repo: String,   
 }
-// impl ActionInput for Input {
-//   fn parse() -> Result<Self, Error> {
-//     Ok(Self {
-//       #field1 : get_input!(#name).ok_or_else(|| Error::from("{} missing", #name))?.try_into().map_err(|e| Error::from(format!("error while parsing {}: {}", #name, e)))?,
-//       #field2 : env::var(#env).unwrap_or_else(|| Error::from("${} missing", #env))?.try_into().map_err(|e| Error::new(e))?,
-//     })
-//   }
-// }
 
-#[derive(ActionOutput)]
+#[derive(ActionOutput, serde::Serialize, serde::Deserialize)]
 struct Output {
     #[output(
         name = "token",
         description = "Generated Token")]
-    token: String
-}
-
-impl Action<Input, Output> for GhTokenGen {
-    async fn main(input: Input) -> Result<Output, Error> {
-        todo!()
-    }
-}
-
-
-#[derive(Debug)]
-enum Run {
-    Main,
-    Post { access_token: AccessToken },
-}
-
-#[derive(Debug)]
-struct Cli {
-    app_id: String,
-    private_key: String,
-    endpoint: String,
-    repo: String,
-    run: Run,
-}
-
-impl Cli {
-    fn try_from_env() -> Result<Self, Error> {
-        let app_id = get_input!("app-id").ok_or_else(|| Error::from("app-id missing"))?;
-        let private_key =
-            get_input!("private-key").ok_or_else(|| Error::from("private-key missing"))?;
-        let endpoint =
-            env::var("GITHUB_API_URL").unwrap_or_else(|| String::from("https://api.github.com"));
-        let repo = env::var("GITHUB_REPOSITORY")
-            .ok_or_else(|| Error::from("GITHUB_REPOSITORY missing"))?;
-
-        Ok(Self {
-            app_id,
-            private_key,
-            endpoint,
-            repo,
-            run: Run::from_env()?,
-        })
-    }
-
-    fn create_payload(app_id: String) -> Result<Payload, Error> {
-        let now = unix_now();
-
-        Ok(Payload {
-            iss: app_id,
-            // 60 seconds in the past to allow for clock drift
-            // https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app#example-using-ruby-to-generate-a-jwt
-            iat: now - 60,
-            exp: now + 60,
-        })
-    }
-
-    async fn run(self) -> Result<(), Error> {
-        match self.run {
-            Run::Main => {
-                let authorization_header = JwtBuilder {
-                    payload: Self::create_payload(self.app_id)?,
-                    pkey: self.private_key,
-                }
-                .build_authorization_header()
-                .await?;
-                add_mask(&authorization_header);
-
-                let access_token = AccessTokenBuilder {
-                    endpoint: Uri::try_from(self.endpoint).map_err(Error::new)?,
-                    repo: self.repo,
-                    authorization_header,
-                    client: reqwest::Client::new(),
-                }
-                .build()
-                .await?;
-
-                set_output("token", &access_token.token).await?;
-                add_mask(&access_token.token);
-                let state = serde_json::to_string(&access_token).map_err(Error::new)?;
-                save_state("access_token", &state).await
-            }
-            Run::Post { access_token } => {
-                RemoveAccessTokenRequest {
-                    endpoint: Uri::try_from(self.endpoint).map_err(Error::new)?,
-                    installation_id: access_token.installation_id,
-                    token: access_token.token,
-                    client: reqwest::Client::new(),
-                }
-                .execute()
-                .await
-            }
-        }
-    }
-}
-
-impl Run {
-    fn from_env() -> Result<Self, Error> {
-        if let Some(access_token) = get_state!("access_token") {
-            let access_token: AccessToken =
-                serde_json::from_str(&access_token).map_err(Error::new)?;
-            Ok(Self::Post { access_token })
-        } else {
-            Ok(Self::Main)
-        }
-    }
+    token: String,
+    installation_id: u64,
 }
 
 #[derive(Serialize)]
