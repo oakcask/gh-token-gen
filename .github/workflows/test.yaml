@@ -48,10 +48,12 @@ jobs:
           commit-message: "fix: `cargo --locked clippy --fix`"
           token: ${{ steps.generate-token.outputs.token }}
       - run: node index.cjs
+        if: always() && ${{ steps.generate-token.outputs.wasm_actions != '' }}
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
-          STATE_access_token: ${{ steps.generate-token.outputs.access_token }}
+          # https://github.com/oakcask/wasm-actions/blob/afa65246b280183200c711b64b69c507837b0449/crates/derive/src/codegen.rs#L112
+          STATE_wasm_actions: ${{ steps.generate-token.outputs.wasm_actions }}
   test:
     runs-on: ubuntu-latest
     concurrency:
