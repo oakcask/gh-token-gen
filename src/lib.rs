@@ -1,6 +1,6 @@
 use base64ct::{Base64UrlUnpadded, Encoding};
 use builder::Action;
-use derive::{ActionInput, ActionOutput, wasm_action};
+use derive::{wasm_action, ActionInput, ActionOutput};
 use http::Uri;
 use log::error;
 mod sign;
@@ -48,9 +48,9 @@ impl Action<Input, Output> for GhTokenGen {
         .build()
         .await?;
         add_mask(&access_token.token);
-        Ok(Output { 
+        Ok(Output {
             token: access_token.token,
-            installation_id: access_token.installation_id
+            installation_id: access_token.installation_id,
         })
     }
 
@@ -71,24 +71,24 @@ struct Input {
     #[input(
         name = "app-id",
         required = true,
-        description = "GitHub Application ID (or Client ID)")]
+        description = "GitHub Application ID (or Client ID)"
+    )]
     app_id: String,
     #[input(
         name = "private-key",
         required = true,
-        description = "The application's PEM-encoded private key")]
+        description = "The application's PEM-encoded private key"
+    )]
     private_key: String,
     #[input(env = "GITHUB_API_URL", default = "https://api.github.com")]
     endpoint: String,
     #[input(env = "GITHUB_REPOSITORY")]
-    repo: String,   
+    repo: String,
 }
 
 #[derive(ActionOutput, serde::Serialize, serde::Deserialize)]
 struct Output {
-    #[output(
-        name = "token",
-        description = "Generated Token")]
+    #[output(name = "token", description = "Generated Token")]
     token: String,
     installation_id: u64,
 }
