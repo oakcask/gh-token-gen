@@ -1,8 +1,8 @@
 use proc_macro2::{Span, TokenStream};
-use syn::{DeriveInput, Error, Ident, LitStr, Type, token::Token};
+use syn::{DeriveInput, Error, Ident};
 use quote::{TokenStreamExt, quote};
 
-use crate::{InputAttr, InputSource, parse::{AttrValue, InputAttrKey, OutputAttr, OutputName}};
+use crate::{InputAttr, InputSource, parse::{OutputAttr, OutputName}};
 
 pub(crate) fn start_fn(input: DeriveInput) -> Result<TokenStream, Error> {
     let ident = input.ident;
@@ -27,7 +27,6 @@ pub(crate) fn start_fn(input: DeriveInput) -> Result<TokenStream, Error> {
 pub(crate) struct InputField {
     pub(crate) span: Span,
     pub(crate) field: Ident,
-    pub(crate) ty: Type,
     pub(crate) attrs: Vec<InputAttr>,
 }
 
@@ -84,7 +83,6 @@ fn action_input_field_init(field: InputField) -> Result<TokenStream, Error> {
 
 #[derive(Debug)]
 pub(crate) struct OutputField {
-    pub(crate) span: Span,
     pub(crate) field: Ident,
     pub(crate) attrs: Vec<OutputAttr>,
 }
@@ -119,7 +117,7 @@ pub(crate) fn action_output_impl(struct_name: Ident, fields: Vec<OutputField>) -
 }
 
 fn action_output_set_output(field: OutputField) -> Result<Option<TokenStream>, Error> {
-    if let Some(name) = OutputName::try_from(field.span, &field.attrs) {
+    if let Some(name) = OutputName::try_from(&field.attrs) {
         let struct_field = field.field;
         Ok(Some(quote! {
             let #struct_field = builder::StringifyOutput::stringify(self.#struct_field);

@@ -1,6 +1,5 @@
-use std::{marker::PhantomData, str::FromStr};
+use std::str::FromStr;
 
-use wasm_actions::get_input;
 use wasm_actions_core::error::Error;
 
 pub trait ActionInput {
@@ -9,6 +8,7 @@ pub trait ActionInput {
 
 pub trait ActionOutput {
     fn parse() -> Result<Option<Self>, Error> where Self: Sized;
+    #[allow(async_fn_in_trait)]
     async fn save(self) -> Result<(), Error>;
 }
 
@@ -21,8 +21,10 @@ pub trait Action<I: ActionInput, O: ActionOutput> {
         O::parse()
     }
 
+    #[allow(async_fn_in_trait)]
     async fn main(input: I) -> Result<O, Error>;
 
+    #[allow(async_fn_in_trait)]
     async fn post(_input: I, _state: O) -> Result<(), Error> {
         Ok(())
     }

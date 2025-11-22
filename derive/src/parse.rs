@@ -1,9 +1,7 @@
-use std::process::Output;
 
-use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::ToTokens;
-use syn::{Attribute, Error, Expr, Field, FieldsNamed, Ident, LitStr, Token, parse::Parse, punctuated::Punctuated, spanned::Spanned};
+use syn::{Attribute, Error, Expr, Ident, LitStr, Token, parse::Parse, punctuated::Punctuated};
 
 pub(crate) enum InputSource<'a> {
     Input(&'a AttrValue),
@@ -51,24 +49,24 @@ pub(crate) struct InputAttr {
     pub(crate) value: AttrValue,
 }
 
-pub(crate) struct OutputName<'a>(Span, &'a AttrValue);
+pub(crate) struct OutputName<'a>(&'a AttrValue);
 
 impl<'a> OutputName<'a> {
-    pub(crate) fn try_from(span: Span, attrs: &'a [OutputAttr]) -> Option<Self> {
+    pub(crate) fn try_from(attrs: &'a [OutputAttr]) -> Option<Self> {
         attrs.iter().find(|a|
             match a.key {
                 crate::parse::OutputAttrKey::Name => true,
                 crate::parse::OutputAttrKey::Description => false,
             }
         ).map(|a| {
-          Some(Self(span, &a.value))
+          Some(Self(&a.value))
         }).unwrap_or(None)
     }
 }
 
 impl<'a> ToTokens for OutputName<'a> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        match self.1 {
+        match self.0 {
             AttrValue::LitStr(lit_str) => lit_str.to_tokens(tokens),
             AttrValue::Expr(expr) => expr.to_tokens(tokens),
         }

@@ -25,7 +25,6 @@ pub fn derive_input(input: TokenStream) -> TokenStream {
                     inputs.push(InputField {
                         span,
                         field: ident,
-                        ty: f.ty,
                         attrs
                     });
                 }
@@ -47,14 +46,12 @@ pub fn derive_output(input: TokenStream) -> TokenStream {
         }) => {
             let mut inputs = Vec::with_capacity(fields.named.len());
             for f in fields.named.into_iter() {
-                let span = f.span();
                 if let Some(ident) = f.ident {
                     let attrs = match OutputAttr::parse_attributes(&f.attrs) {
                         Ok(a) => a,
                         Err(e) => return compile_error(e).into()
                     };
                     inputs.push(OutputField {
-                        span,
                         field: ident,
                         attrs
                     });
