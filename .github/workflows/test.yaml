@@ -37,6 +37,10 @@ jobs:
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
+      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
+        with:
+          commit-message: "chore: update action.yaml and index.cjs"
+          token: ${{ steps.generate-token.outputs.token }}
       - run: cargo --locked fmt
       - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
         with:

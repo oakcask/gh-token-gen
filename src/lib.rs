@@ -89,7 +89,7 @@ struct Input {
 
 #[derive(ActionOutput, serde::Serialize, serde::Deserialize)]
 struct Output {
-    #[output(name = "token", description = "Generated Token")]
+    #[output(name = "token", description = "Generated token")]
     token: String,
     installation_id: u64,
 }
