@@ -15,7 +15,7 @@ pub(crate) enum InputSource<'a> {
 }
 
 impl<'a> InputSource<'a> {
-    pub(crate) fn try_from(span: Span, attrs: &'a [InputAttr]) -> Result<Self, syn::Error> {
+    pub(crate) fn try_from(span: Span, attrs: &'a [InputAttr]) -> Result<Self, Error> {
         let mut input = None;
         let mut env = None;
         for a in attrs {
@@ -50,6 +50,32 @@ pub(crate) struct InputAttr {
     pub(crate) key: InputAttrKey,
     pub(crate) value: AttrValue,
 }
+
+pub(crate) struct OutputName<'a>(Span, &'a AttrValue);
+
+impl<'a> OutputName<'a> {
+    pub(crate) fn try_from(span: Span, attrs: &'a [OutputAttr]) -> Option<Self> {
+        attrs.iter().find(|a|
+            match a.key {
+                crate::parse::OutputAttrKey::Name => true,
+                crate::parse::OutputAttrKey::Description => false,
+            }
+        ).map(|a| {
+          Some(Self(span, &a.value))
+        }).unwrap_or(None)
+    }
+}
+
+impl<'a> ToTokens for OutputName<'a> {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self.1 {
+            AttrValue::LitStr(lit_str) => lit_str.to_tokens(tokens),
+            AttrValue::Expr(expr) => expr.to_tokens(tokens),
+        }
+    }
+}
+
+
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum OutputAttrKey {
@@ -152,10 +178,7 @@ impl Parse for OutputAttr {
             let lit: LitStr = input.parse()?;
             AttrValue::LitStr(lit)
         } else {
-            match input.parse::<Expr>() {
-                Ok(expr) => AttrValue::Expr(expr),
-                Err(_) => return Err(Error::new(t_assign.span, "expected literal string or expression after `=`")),
-            }
+            return Err(Error::new(t_assign.span, "expected literal string after `=`"));
         };
         Ok(Self { key, value })
     }

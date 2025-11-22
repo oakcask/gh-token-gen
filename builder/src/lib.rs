@@ -39,3 +39,14 @@ where T: FromStr + Sized, <T as FromStr>::Err: std::error::Error {
         s.as_str().parse().map_err(|e| Error::new(e))
     }
 } 
+
+pub trait StringifyOutput {
+    fn stringify(self) -> String;
+}
+
+impl<T> StringifyOutput for T
+where T: Into<String> + Sized {
+    fn stringify(self) -> String {
+        self.into()
+    }
+}

@@ -56,7 +56,6 @@ pub fn derive_output(input: TokenStream) -> TokenStream {
                     inputs.push(OutputField {
                         span,
                         field: ident,
-                        ty: f.ty,
                         attrs
                     });
                 }
