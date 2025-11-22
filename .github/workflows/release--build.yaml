@@ -37,7 +37,7 @@ jobs:
       - name: Check if Cargo.toml is already updated
         run: git diff --exit-code
       - id: gh-token-gen
-        uses: oakcask/gh-token-gen@62894164e9fe64f670ebe5ef5238fa870977aaa9 # v4.0.0
+        uses: oakcask/gh-token-gen@8265635a8608c36d4e5de582b02d76c0b9fa790a # v4.0.1
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
@@ -82,7 +82,7 @@ jobs:
       group: ${{ github.workflow }}-tag
     steps:
       - id: gh-token-gen
-        uses: oakcask/gh-token-gen@62894164e9fe64f670ebe5ef5238fa870977aaa9 # v4.0.0
+        uses: oakcask/gh-token-gen@8265635a8608c36d4e5de582b02d76c0b9fa790a # v4.0.1
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
