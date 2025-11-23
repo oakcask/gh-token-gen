@@ -1,12 +1,13 @@
+---
 name: gh-token-gen
 description: generate GitHub application token
 inputs:
   app-id:
+    required: true
     description: GitHub Application ID (or Client ID)
-    required: true
   private-key:
-    description: The application's PEM-encoded private key
     required: true
+    description: "The application's PEM-encoded private key"
 outputs:
   token:
     description: Generated token
