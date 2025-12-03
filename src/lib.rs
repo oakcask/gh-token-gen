@@ -6,9 +6,8 @@ use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
 use wasm_actions::{
     derive::{wasm_action, ActionInput, ActionOutput},
-    prelude::{add_mask, derive::Action},
+    prelude::{add_mask, derive::Action, Error},
 };
-use wasm_actions_core::error::Error;
 
 #[wasm_action(
     name = "gh-token-gen",
