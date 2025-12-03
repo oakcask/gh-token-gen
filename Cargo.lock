@@ -321,9 +321,6 @@ dependencies = [
  "serde_json",
  "wasm-actions",
  "wasm-actions-build",
- "wasm-actions-core",
- "wasm-actions-macro",
- "wasm-actions-prelude",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
@@ -695,9 +692,9 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 
 [[package]]
 name = "log"
-version = "0.4.28"
+version = "0.4.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
+checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
 name = "memchr"
@@ -1631,18 +1628,19 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions"
-version = "0.6.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+version = "0.7.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "wasm-actions-derive",
+ "wasm-actions-futures",
  "wasm-actions-prelude",
- "wasm-bindgen-futures",
+ "wasm-bindgen",
 ]
 
 [[package]]
 name = "wasm-actions-build"
 version = "0.1.4"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "cargo_toml",
  "serde_json",
@@ -1653,8 +1651,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-core"
-version = "0.8.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+version = "0.9.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "js-sys",
  "tokio",
@@ -1665,8 +1663,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-derive"
-version = "0.7.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+version = "0.8.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1678,18 +1676,19 @@ dependencies = [
 
 [[package]]
 name = "wasm-actions-futures"
-version = "0.1.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+version = "0.2.0"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "js-sys",
  "wasm-actions-node-sys",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
 name = "wasm-actions-log"
-version = "0.6.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+version = "0.6.2"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "log",
  "wasm-actions-core",
@@ -1698,7 +1697,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-macro"
 version = "0.6.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "syn",
 ]
@@ -1706,7 +1705,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-node-sys"
 version = "0.2.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -1715,7 +1714,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-parse"
 version = "0.1.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1725,7 +1724,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-prelude"
 version = "0.8.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#ee53204ca2a5c8fc1cdcba620f487c6110fdcac2"
+source = "git+https://github.com/oakcask/wasm-actions.git#596a4b666e4a259a18fc78adae7e0317f358f1e6"
 dependencies = [
  "wasm-actions-core",
  "wasm-actions-log",
