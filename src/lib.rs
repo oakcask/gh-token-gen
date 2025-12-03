@@ -5,8 +5,8 @@ mod sign;
 use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
 use wasm_actions::{
-    derive::{ActionInput, ActionOutput, wasm_action},
-    prelude::{Error, add_mask, derive::Action},
+    derive::{wasm_action, ActionInput, ActionOutput},
+    prelude::{add_mask, derive::Action, Error},
 };
 
 #[wasm_action(
