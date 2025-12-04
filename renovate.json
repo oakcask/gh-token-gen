@@ -12,6 +12,13 @@
         "minor"
       ],
       "automerge": true
+    },
+    {
+      "matchDepTypes":[
+        "action"
+      ],
+      "matchCurrentAge": "> 5 days",
+      "automerge": true
     }
   ],
   "rangeStrategy": "bump",
