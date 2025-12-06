@@ -57,7 +57,7 @@ jobs:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
           # https://github.com/oakcask/wasm-actions/blob/afa65246b280183200c711b64b69c507837b0449/crates/derive/src/codegen.rs#L112
-          STATE_wasm_actions: ${{ steps.generate-token.outputs.wasm_actions }}
+          STATE_WASM_ACTIONS: ${{ steps.generate-token.outputs.wasm_actions }}
   test:
     runs-on: ubuntu-latest
     concurrency:
