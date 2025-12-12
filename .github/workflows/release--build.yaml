@@ -30,7 +30,7 @@ jobs:
       semver_minor: ${{ steps.semantic-release.outputs.new_release_major_version }}.${{ steps.semantic-release.outputs.new_release_minor_version }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-      - uses: EricCrosson/install-github-release-binary@3b6741ed37d8bdb9539ff5234f8c3b70805d04b5 # v2
+      - uses: EricCrosson/install-github-release-binary@563c9eaa828d50bc19e7d6bfadae4b7bfd32ad4a # v2
         with:
           targets: semantic-release-cargo/semantic-release-cargo@v2.2.96
       - run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
