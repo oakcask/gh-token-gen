@@ -17,6 +17,53 @@ jobs:
       group: ${{ github.workflow }}-lint-${{ github.ref }}
     permissions:
       contents: write
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1
+        with:
+          cache-key: ${{ hashFiles('Cargo.lock') }}
+      - id: generate-token
+        uses: oakcask/gh-token-gen@d65c585678cb39f009f96046d788617e1d0b0745 # v4.0.2
+        with:
+          app-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
+        with:
+          commit-message: "chore: update action.yaml and index.cjs"
+          token: ${{ steps.generate-token.outputs.token }}
+      - run: cargo --locked fmt
+      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
+        with:
+          commit-message: "style: `cargo --locked fmt`"
+          token: ${{ steps.generate-token.outputs.token }}
+      - run: cargo --locked clippy --fix
+      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
+        with:
+          commit-message: "fix: `cargo --locked clippy --fix`"
+          token: ${{ steps.generate-token.outputs.token }}
+  test:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-test-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1
+        with:
+          cache-key: ${{ hashFiles('Cargo.lock') }}
+      - uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3
+        with:
+          crate: wasm-pack
+          version: "0.13.1"
+      - run: wasm-pack test --node
+  integration:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-integration-${{ github.ref }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
@@ -37,39 +84,19 @@ jobs:
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
-      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
+      - uses: actions/github-script@v8
         with:
-          commit-message: "chore: update action.yaml and index.cjs"
-          token: ${{ steps.generate-token.outputs.token }}
-      - run: cargo --locked fmt
-      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
-        with:
-          commit-message: "style: `cargo --locked fmt`"
-          token: ${{ steps.generate-token.outputs.token }}
-      - run: cargo --locked clippy --fix
-      - uses: int128/update-generated-files-action@d9aac571db84cee6c16fa20190621e9deb2bc575 # v2
-        with:
-          commit-message: "fix: `cargo --locked clippy --fix`"
-          token: ${{ steps.generate-token.outputs.token }}
+          github-token: ${{ steps.generate-token.outputs.token }}
+          script: |
+            github.rest.issues.get({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
       - run: node index.cjs
         if: always() && ${{ steps.generate-token.outputs.wasm_actions != '' }}
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
           # https://github.com/oakcask/wasm-actions/blob/afa65246b280183200c711b64b69c507837b0449/crates/derive/src/codegen.rs#L112
-          STATE_WASM_ACTIONS: ${{ steps.generate-token.outputs.wasm_actions }}
-  test:
-    runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-test-${{ github.ref }}
-      cancel-in-progress: true
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1
-        with:
-          cache-key: ${{ hashFiles('Cargo.lock') }}
-      - uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3
-        with:
-          crate: wasm-pack
-          version: "0.13.1"
-      - run: wasm-pack test --node
+          STATE_WASM_ACTIONS: ${{ steps.generate-token.outputs.wasm_actions }}     
