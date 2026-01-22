@@ -937,9 +937,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.104"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9695f8df41bb4f3d222c95a67532365f569318332d03d5f3f67f37b20e6ebdf0"
+checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
 ]
@@ -957,7 +957,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.6.0",
+ "socket2 0.5.9",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -995,16 +995,16 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.0",
+ "socket2 0.5.9",
  "tracing",
  "windows-sys 0.59.0",
 ]
 
 [[package]]
 name = "quote"
-version = "1.0.42"
+version = "1.0.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a338cc41d27e6cc6dce6cefc13a0729dfbb81c262b1f519331575dd80ef3067f"
+checksum = "dc74d9a594b72ae6656596548f56f667211f8a97b3d4c3d467150794690dc40a"
 dependencies = [
  "proc-macro2",
 ]
@@ -1418,9 +1418,9 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"
-version = "2.0.113"
+version = "2.0.114"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "678faa00651c9eb72dd2020cbdf275d92eccb2400d568e419efdd64838145cb4"
+checksum = "d4d107df263a3013ef9b1879b0df87d706ff80f65a86ea879bd9c31f9b307c2a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1763,7 +1763,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions"
 version = "0.7.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "serde_json",
  "wasm-actions-derive",
@@ -1775,7 +1775,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-build"
 version = "0.1.5"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "cargo_toml",
  "serde_json",
@@ -1787,7 +1787,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-core"
 version = "0.10.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "js-sys",
  "tokio",
@@ -1799,7 +1799,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-derive"
 version = "0.8.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1811,7 +1811,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-futures"
 version = "0.3.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "js-sys",
  "wasm-actions-node-sys",
@@ -1822,7 +1822,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-log"
 version = "0.6.2"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "log",
  "wasm-actions-core",
@@ -1831,7 +1831,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-macro"
 version = "0.6.2"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "syn",
 ]
@@ -1839,7 +1839,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-node-sys"
 version = "0.3.0"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -1848,7 +1848,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-parse"
 version = "0.1.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1858,7 +1858,7 @@ dependencies = [
 [[package]]
 name = "wasm-actions-prelude"
 version = "0.8.1"
-source = "git+https://github.com/oakcask/wasm-actions.git#bc92829fecba8062fa5c6f36ad6a559196b4d95e"
+source = "git+https://github.com/oakcask/wasm-actions.git#135689b4545c974011c8ca95c0183c7f2e9c1193"
 dependencies = [
  "wasm-actions-core",
  "wasm-actions-futures",
