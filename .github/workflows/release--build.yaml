@@ -58,7 +58,7 @@ jobs:
         with:
           ref: refs/tags/src/v${{ needs.semantic-release.outputs.version }}
       - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1
-      - uses: baptiste0928/cargo-install@b687c656bda5733207e629b50a22bf68974a0305 # v3
+      - uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
           crate: wasm-pack
           # renovate: datasource=crate depName=wasm-pack
