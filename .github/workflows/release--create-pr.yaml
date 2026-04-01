@@ -32,7 +32,7 @@ jobs:
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
-      - uses: int128/update-generated-files-action@364e47446959c2ddb5c3954e4433aa08e5db07dc # v2
+      - uses: int128/update-generated-files-action@f83cd1762d5cde0de059b0e91bf86399662fbb71 # v2
         with:
           title: "chore: prepare v${{ needs.get-next-version.outputs.new-release-version }}"
           body: Prepare releasing v${{ needs.get-next-version.outputs.new-release-version }}
