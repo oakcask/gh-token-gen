@@ -12,10 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: gh-token-gen
-        uses: oakcask/gh-token-gen@v2
+        uses: oakcask/gh-token-gen@v4
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
+```
+
+For GitHub Enterprise Server, set `endpoint` explicitly:
+
+```yaml
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v4
+        with:
+          app-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          endpoint: https://github.example.com/api/v3
 ```
 
 Please check out [action.yaml](./action.yaml) for further explanation of parameters.

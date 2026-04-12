@@ -8,6 +8,9 @@ inputs:
   private-key:
     required: true
     description: "The application's PEM-encoded private key"
+  endpoint:
+    default: "https://api.github.com"
+    description: GitHub API endpoint; override this for GHES
 outputs:
   token:
     description: Generated token
