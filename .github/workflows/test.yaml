@@ -84,6 +84,7 @@ jobs:
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
+          INPUT_ENDPOINT: "https://api.github.com"
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
@@ -98,5 +99,6 @@ jobs:
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
+          INPUT_ENDPOINT: "https://api.github.com"
           # https://github.com/oakcask/wasm-actions/blob/afa65246b280183200c711b64b69c507837b0449/crates/derive/src/codegen.rs#L112
           STATE_WASM_ACTIONS: ${{ steps.generate-token.outputs.wasm_actions }}     

@@ -80,7 +80,11 @@ struct Input {
         description = "The application's PEM-encoded private key"
     )]
     private_key: String,
-    #[input(env = "GITHUB_API_URL", default = "https://api.github.com")]
+    #[input(
+        name = "endpoint",
+        default = "https://api.github.com",
+        description = "GitHub API endpoint; override this for GHES"
+    )]
     endpoint: String,
     #[input(env = "GITHUB_REPOSITORY")]
     repo: String,
