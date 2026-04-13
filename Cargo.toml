@@ -29,7 +29,7 @@ serde-wasm-bindgen = "0.6.5"
 rsa = { version = "0.9.10", features = ["pem"] }
 pkcs8 = { version = "0.10.2", features = ["pem"] }
 pkcs1 = { version = "0.7.5", features = ["pkcs8"] }
-wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git", rev = "4dd3d0a82dd9bc85d6423f39898f875adf06b58b" }
+wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git", rev = "2ebe3b962d8131449e976492463c81d463eca3ef" }
 
 [dependencies.getrandom]
 version = "*"
