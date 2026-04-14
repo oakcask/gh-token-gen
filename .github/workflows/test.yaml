@@ -26,7 +26,7 @@ jobs:
         with:
           cache-key: ${{ hashFiles('Cargo.lock') }}
       - id: generate-token
-        uses: oakcask/gh-token-gen@d65c585678cb39f009f96046d788617e1d0b0745 # v4.0.2
+        uses: oakcask/gh-token-gen@e3d2caa8ef6111f5a516995d88890d3fb09206e3 # v5.0.0
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
