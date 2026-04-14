@@ -39,4 +39,4 @@ features = ["js"]
 wasm-bindgen-test = "0.3.68"
 
 [build-dependencies]
-wasm-actions-build = { git = "https://github.com/oakcask/wasm-actions.git", rev = "2ebe3b962d8131449e976492463c81d463eca3ef" }
+wasm-actions-build = { git = "https://github.com/oakcask/wasm-actions.git", rev = "7ab4a0923e5af05ee64cad1381b87c6c10e4b11d" }
