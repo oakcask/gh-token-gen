@@ -153,9 +153,8 @@ struct AccessToken {
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 impl AccessTokenBuilder {
-    async fn get_installation_id(&self) -> Result<u64, Error> {
-        let path = format!("/repos/{}/installation", self.repo);
-        let api = Uri::builder()
+    fn uri_builder(&self) -> Result<http::uri::Builder, Error> {
+        Ok(Uri::builder()
             .scheme(
                 self.endpoint
                     .scheme()
@@ -167,7 +166,12 @@ impl AccessTokenBuilder {
                     .authority()
                     .ok_or_else(|| Error::from("endpoint (GITHUB_API_URL) must contain authority"))?
                     .as_str(),
-            )
+            ))
+    }
+
+    async fn get_installation_id(&self) -> Result<u64, Error> {
+        let path = format!("/repos/{}/installation", self.repo);
+        let api = self.uri_builder()?
             .path_and_query(path)
             .build()
             .map_err(Error::new)?;
@@ -196,19 +200,7 @@ impl AccessTokenBuilder {
         let reponame = self.repo.split('/').nth(1).unwrap();
         let installation_id = self.get_installation_id().await?;
         let path = format!("/app/installations/{}/access_tokens", installation_id);
-        let api = Uri::builder()
-            .scheme(
-                self.endpoint
-                    .scheme()
-                    .expect("endpoint (GITHUB_API_URL) must contain scheme")
-                    .as_str(),
-            )
-            .authority(
-                self.endpoint
-                    .authority()
-                    .expect("endpoint (GITHUB_API_URL) must contain authority")
-                    .as_str(),
-            )
+        let api = self.uri_builder()?
             .path_and_query(path)
             .build()
             .map_err(Error::new)?;
