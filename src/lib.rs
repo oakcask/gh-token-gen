@@ -171,7 +171,8 @@ impl AccessTokenBuilder {
 
     async fn get_installation_id(&self) -> Result<u64, Error> {
         let path = format!("/repos/{}/installation", self.repo);
-        let api = self.uri_builder()?
+        let api = self
+            .uri_builder()?
             .path_and_query(path)
             .build()
             .map_err(Error::new)?;
@@ -200,7 +201,8 @@ impl AccessTokenBuilder {
         let reponame = self.repo.split('/').nth(1).unwrap();
         let installation_id = self.get_installation_id().await?;
         let path = format!("/app/installations/{}/access_tokens", installation_id);
-        let api = self.uri_builder()?
+        let api = self
+            .uri_builder()?
             .path_and_query(path)
             .build()
             .map_err(Error::new)?;
