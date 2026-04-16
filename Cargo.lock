@@ -1777,12 +1777,12 @@ dependencies = [
 [[package]]
 name = "wasm-actions-build"
 version = "0.1.6"
-source = "git+https://github.com/oakcask/wasm-actions.git?rev=2ebe3b962d8131449e976492463c81d463eca3ef#2ebe3b962d8131449e976492463c81d463eca3ef"
+source = "git+https://github.com/oakcask/wasm-actions.git?rev=7ab4a0923e5af05ee64cad1381b87c6c10e4b11d#7ab4a0923e5af05ee64cad1381b87c6c10e4b11d"
 dependencies = [
  "cargo_toml",
  "serde_json",
  "syn",
- "wasm-actions-parse",
+ "wasm-actions-parse 0.1.2 (git+https://github.com/oakcask/wasm-actions.git?rev=7ab4a0923e5af05ee64cad1381b87c6c10e4b11d)",
  "yaml-rust",
 ]
 
@@ -1806,7 +1806,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "wasm-actions-parse",
+ "wasm-actions-parse 0.1.2 (git+https://github.com/oakcask/wasm-actions.git?rev=2ebe3b962d8131449e976492463c81d463eca3ef)",
  "wasm-bindgen",
 ]
 
@@ -1854,6 +1854,14 @@ source = "git+https://github.com/oakcask/wasm-actions.git?rev=2ebe3b962d8131449e
 dependencies = [
  "proc-macro2",
  "quote",
+ "syn",
+]
+
+[[package]]
+name = "wasm-actions-parse"
+version = "0.1.2"
+source = "git+https://github.com/oakcask/wasm-actions.git?rev=7ab4a0923e5af05ee64cad1381b87c6c10e4b11d#7ab4a0923e5af05ee64cad1381b87c6c10e4b11d"
+dependencies = [
  "syn",
 ]
 
