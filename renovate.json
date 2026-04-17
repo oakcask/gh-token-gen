@@ -2,10 +2,19 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
+    "customManagers:githubActionsVersions",
     "helpers:pinGitHubActionDigests"
   ],
   "prConcurrentLimit": 1,
   "packageRules": [
+    {
+      "matchManagers": ["cargo"],
+      "matchPackageNames": [
+        "wasm-actions",
+        "wasm-actions-build"
+      ],
+      "groupName": "wasm-actions"
+    },
     {
       "matchUpdateTypes": [
         "patch",
@@ -21,16 +30,5 @@
       "automerge": true
     }
   ],
-  "rangeStrategy": "bump",
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^.github\\/workflows\\/.*\\.ya?ml$/"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+?) depName=(?<depName>\\S+?)\\s+\\S+:\\s+?\"(?<currentValue>\\S+)\""
-      ]
-    }
-  ]
+  "rangeStrategy": "bump"
 }

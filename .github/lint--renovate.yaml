@@ -1,0 +1,30 @@
+name: lint / renovate
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/lint--renovate.yaml
+      - renovate.json
+permissions:
+  contents: read
+env:
+  # renovate: datasource=npm depName=pnpm
+  PNPM_VERSION: "10.33"
+  # renovate: datasource=npm depName=renovate
+  RENOVATE_VERSION: "43.110"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          dest: ~/.pnpm
+      - run: pnpm add -g renovate@${RENOVATE_VERSION}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          sparse-checkout: |
+            renovate.json
+      - run: renovate-config-validator --strict
+        env:
+          LOG_LEVEL: "warn"
