@@ -9,9 +9,9 @@
   "packageRules": [
     {
       "matchManagers": ["cargo"],
-      "matchPackagePatterns": [
-        "^wasm-actions$",
-        "^wasm-actions-"
+      "matchPackageNames": [
+        "/^wasm-actions$/",
+        "/^wasm-actions-/"
       ],
       "groupName": "wasm-actions"
     },
