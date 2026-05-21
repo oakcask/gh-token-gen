@@ -303,3 +303,50 @@ fn unix_now() -> i64 {
 fn encode_base64_url(src: &[u8]) -> String {
     Base64UrlUnpadded::encode_string(src)
 }
+
+#[cfg(all(test, target_arch = "wasm32"))]
+mod tests {
+    use super::*;
+    use wasm_bindgen_test::wasm_bindgen_test;
+
+    #[wasm_bindgen_test]
+    fn parses_default_github_api_url() {
+        let endpoint = ApiEndpoint::from_inputs("https://api.github.com", "").unwrap();
+
+        assert_eq!(
+            endpoint.uri("/repos/owner/repo/installation").unwrap(),
+            "https://api.github.com/repos/owner/repo/installation"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn preserves_github_enterprise_api_base_path() {
+        let endpoint = ApiEndpoint::from_inputs("https://github.example.com/api/v3/", "").unwrap();
+
+        assert_eq!(
+            endpoint
+                .uri("/app/installations/123/access_tokens")
+                .unwrap(),
+            "https://github.example.com/api/v3/app/installations/123/access_tokens"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn endpoint_alias_overrides_github_api_url() {
+        let endpoint = ApiEndpoint::from_inputs(
+            "https://api.github.com",
+            "https://github.example.com/api/v3",
+        )
+        .unwrap();
+
+        assert_eq!(
+            endpoint.uri("/installation/token").unwrap(),
+            "https://github.example.com/api/v3/installation/token"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn rejects_github_api_url_without_authority() {
+        assert!(ApiEndpoint::from_inputs("https:///api/v3", "").is_err());
+    }
+}
