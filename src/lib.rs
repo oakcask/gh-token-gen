@@ -32,11 +32,13 @@ impl GhTokenGen {
 
 impl Action<Input, Output> for GhTokenGen {
     async fn main(input: Input) -> Result<Output, Error> {
+        let client_id = input.client_id()?;
+        let private_key = input.private_key()?;
         let endpoint = ApiEndpoint::from_inputs(&input.github_api_url, &input.endpoint)?;
         let target = InstallationTarget::resolve(&input)?;
         let authorization_header = JwtBuilder {
-            payload: Self::create_payload(input.app_id)?,
-            pkey: input.private_key,
+            payload: Self::create_payload(client_id)?,
+            pkey: private_key,
         }
         .build_authorization_header()
         .await?;
@@ -77,10 +79,12 @@ impl Action<Input, Output> for GhTokenGen {
 struct Input {
     #[input(
         name = "app-id",
-        required = true,
+        default = "",
         description = "GitHub Application ID (or Client ID)"
     )]
     app_id: String,
+    #[input(name = "client-id", default = "", description = "GitHub App Client ID")]
+    client_id: String,
     #[input(
         name = "private-key",
         required = true,
@@ -127,6 +131,32 @@ struct Input {
     repo: String,
     #[input(env = "GITHUB_REPOSITORY_OWNER")]
     repo_owner: String,
+}
+
+impl Input {
+    fn client_id(&self) -> Result<String, Error> {
+        let client_id = if self.client_id.trim().is_empty() {
+            self.app_id.trim()
+        } else {
+            self.client_id.trim()
+        };
+
+        if client_id.is_empty() {
+            Err(Error::from(
+                "client-id or deprecated app-id must be set to a non-empty string",
+            ))
+        } else {
+            Ok(client_id.to_string())
+        }
+    }
+
+    fn private_key(&self) -> Result<String, Error> {
+        if self.private_key.trim().is_empty() {
+            Err(Error::from("private-key must be set to a non-empty string"))
+        } else {
+            Ok(self.private_key.replace("\\n", "\n"))
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -225,6 +255,7 @@ struct AccessTokenBuilder {
     client: reqwest::Client,
 }
 
+#[derive(Clone)]
 enum InstallationTarget {
     Enterprise {
         enterprise: String,
@@ -406,6 +437,28 @@ impl AccessTokenBuilder {
     }
 
     async fn build(self) -> Result<AccessToken, Error> {
+        let mut last_error = None;
+
+        for attempt in 1..=4 {
+            match self.try_build().await {
+                Ok(access_token) => return Ok(access_token),
+                Err(e) => {
+                    if attempt == 4 {
+                        return Err(e);
+                    }
+                    warn!(
+                        "failed to create token, retrying attempt {}: {e}",
+                        attempt + 1
+                    );
+                    last_error = Some(e);
+                }
+            }
+        }
+
+        Err(last_error.unwrap_or_else(|| Error::from("failed to create token")))
+    }
+
+    async fn try_build(&self) -> Result<AccessToken, Error> {
         let installation = self.get_installation().await?;
         let installation_id = installation.id;
         let path = format!("/app/installations/{}/access_tokens", installation_id);
@@ -413,7 +466,7 @@ impl AccessTokenBuilder {
 
         let body = AccessTokenRequest {
             repositories: self.target.repository_names(),
-            permissions: self.permissions,
+            permissions: self.permissions.clone(),
         };
         let res = self
             .client
@@ -421,7 +474,7 @@ impl AccessTokenBuilder {
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", USER_AGENT)
             .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("Authorization", self.authorization_header)
+            .header("Authorization", self.authorization_header.clone())
             .json(&body)
             .send()
             .await
