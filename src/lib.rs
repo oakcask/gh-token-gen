@@ -883,4 +883,32 @@ mod tests {
             "Bearer ghs_token"
         );
     }
+
+    #[wasm_bindgen_test]
+    fn action_metadata_includes_generated_permission_inputs() {
+        let action = include_str!("../action.yaml");
+
+        for permission in [
+            "permission-actions",
+            "permission-contents",
+            "permission-pull-requests",
+            "permission-vulnerability-alerts",
+            "permission-workflows",
+        ] {
+            assert!(action.contains(&format!("  {permission}:")));
+        }
+        assert!(action
+            .contains("description: GitHub App permission level to grant to the access token"));
+    }
+
+    #[wasm_bindgen_test]
+    fn action_metadata_keeps_declared_outputs_after_permission_inputs() {
+        let action = include_str!("../action.yaml");
+        let permissions = action.find("  permission-actions:").unwrap();
+        let outputs = action.find("outputs:").unwrap();
+
+        assert!(permissions < outputs);
+        assert!(action.contains("  installation-id:"));
+        assert!(action.contains("  app-slug:"));
+    }
 }
