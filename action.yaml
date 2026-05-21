@@ -26,6 +26,10 @@ inputs:
 outputs:
   token:
     description: Generated token
+  installation-id:
+    description: GitHub App installation ID
+  app-slug:
+    description: GitHub App slug
 runs:
   using: node24
   main: index.cjs

@@ -54,7 +54,8 @@ impl Action<Input, Output> for GhTokenGen {
         add_mask(&access_token.token);
         Ok(Output {
             token: access_token.token,
-            installation_id: access_token.installation_id,
+            installation_id: access_token.installation_id.to_string(),
+            app_slug: access_token.app_slug,
         })
     }
 
@@ -176,7 +177,10 @@ impl ApiEndpoint {
 struct Output {
     #[output(name = "token", description = "Generated token")]
     token: String,
-    installation_id: u64,
+    #[output(name = "installation-id", description = "GitHub App installation ID")]
+    installation_id: String,
+    #[output(name = "app-slug", description = "GitHub App slug")]
+    app_slug: String,
 }
 
 #[derive(Serialize)]
@@ -329,6 +333,7 @@ fn parse_repository(owner: &str, input: &str) -> Result<String, Error> {
 #[derive(Deserialize)]
 struct InstallationResponse {
     id: u64,
+    app_slug: String,
 }
 
 #[derive(Serialize)]
@@ -347,13 +352,14 @@ struct AccessTokenResponse {
 #[derive(Debug, Serialize, Deserialize)]
 struct AccessToken {
     installation_id: u64,
+    app_slug: String,
     token: String,
 }
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 impl AccessTokenBuilder {
-    async fn get_installation_id(&self) -> Result<u64, Error> {
+    async fn get_installation(&self) -> Result<InstallationResponse, Error> {
         let paths = self.target.installation_paths();
 
         for (index, path) in paths.iter().enumerate() {
@@ -382,14 +388,15 @@ impl AccessTokenBuilder {
             }
 
             let res: InstallationResponse = res.json().await.map_err(Error::new)?;
-            return Ok(res.id);
+            return Ok(res);
         }
 
         Err(Error::from("installation could not be resolved"))
     }
 
     async fn build(self) -> Result<AccessToken, Error> {
-        let installation_id = self.get_installation_id().await?;
+        let installation = self.get_installation().await?;
+        let installation_id = installation.id;
         let path = format!("/app/installations/{}/access_tokens", installation_id);
         let api = self.endpoint.uri(&path)?;
 
@@ -417,6 +424,7 @@ impl AccessTokenBuilder {
             add_mask(&res.token);
             Ok(AccessToken {
                 installation_id,
+                app_slug: installation.app_slug,
                 token: res.token,
             })
         }
@@ -426,7 +434,7 @@ impl AccessTokenBuilder {
 struct RemoveAccessTokenRequest {
     endpoint: ApiEndpoint,
     token: String,
-    installation_id: u64,
+    installation_id: String,
     client: reqwest::Client,
 }
 
