@@ -535,6 +535,7 @@ mod tests {
             owner: String::new(),
             repositories: String::new(),
             enterprise: String::new(),
+            skip_token_revoke: false,
             repo: "owner/current".to_string(),
             repo_owner: "owner".to_string(),
         }
@@ -723,6 +724,7 @@ mod tests {
             token: "ghs_token".to_string(),
             installation_id: "123".to_string(),
             app_slug: "octo-app".to_string(),
+            expires_at: "2999-01-01T00:00:00Z".to_string(),
         };
         let value = serde_json::to_value(&output).unwrap();
 
@@ -731,12 +733,33 @@ mod tests {
             serde_json::json!({
                 "token": "ghs_token",
                 "installation_id": "123",
-                "app_slug": "octo-app"
+                "app_slug": "octo-app",
+                "expires_at": "2999-01-01T00:00:00Z"
             })
         );
 
         let round_trip: Output = serde_json::from_value(value).unwrap();
         assert_eq!(round_trip.installation_id, "123");
         assert_eq!(round_trip.app_slug, "octo-app");
+        assert_eq!(round_trip.expires_at, "2999-01-01T00:00:00Z");
+    }
+
+    #[wasm_bindgen_test]
+    fn deserializes_access_token_expiration() {
+        let response: AccessTokenResponse = serde_json::from_value(serde_json::json!({
+            "token": "ghs_token",
+            "expires_at": "2999-01-01T00:00:00Z"
+        }))
+        .unwrap();
+
+        assert_eq!(response.token, "ghs_token");
+        assert_eq!(response.expires_at, "2999-01-01T00:00:00Z");
+    }
+
+    #[wasm_bindgen_test]
+    fn detects_expired_tokens() {
+        assert!(token_expired("2000-01-01T00:00:00Z"));
+        assert!(!token_expired("2999-01-01T00:00:00Z"));
+        assert!(!token_expired("not-a-timestamp"));
     }
 }
