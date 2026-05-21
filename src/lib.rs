@@ -444,6 +444,20 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::wasm_bindgen_test;
 
+    fn input() -> Input {
+        Input {
+            app_id: "client-id".to_string(),
+            private_key: "private-key".to_string(),
+            github_api_url: "https://api.github.com".to_string(),
+            endpoint: String::new(),
+            owner: String::new(),
+            repositories: String::new(),
+            enterprise: String::new(),
+            repo: "owner/current".to_string(),
+            repo_owner: "owner".to_string(),
+        }
+    }
+
     #[wasm_bindgen_test]
     fn parses_default_github_api_url() {
         let endpoint = ApiEndpoint::from_inputs("https://api.github.com", "").unwrap();
@@ -483,5 +497,68 @@ mod tests {
     #[wasm_bindgen_test]
     fn rejects_github_api_url_without_authority() {
         assert!(ApiEndpoint::from_inputs("https:///api/v3", "").is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn resolves_current_repository_target_by_default() {
+        let target = InstallationTarget::resolve(&input()).unwrap();
+
+        assert_eq!(
+            target.installation_path(),
+            "/repos/owner/current/installation"
+        );
+        assert_eq!(target.repository_names(), Some(vec!["current".to_string()]));
+    }
+
+    #[wasm_bindgen_test]
+    fn resolves_owner_target_without_repository_scope() {
+        let mut input = input();
+        input.owner = "octo-org".to_string();
+
+        let target = InstallationTarget::resolve(&input).unwrap();
+
+        assert_eq!(target.installation_path(), "/users/octo-org/installation");
+        assert_eq!(target.repository_names(), None);
+    }
+
+    #[wasm_bindgen_test]
+    fn resolves_repository_list_against_owner() {
+        let mut input = input();
+        input.owner = "octo-org".to_string();
+        input.repositories = "repo1, octo-org/repo2\nrepo3".to_string();
+
+        let target = InstallationTarget::resolve(&input).unwrap();
+
+        assert_eq!(
+            target.installation_path(),
+            "/repos/octo-org/repo1/installation"
+        );
+        assert_eq!(
+            target.repository_names(),
+            Some(vec![
+                "repo1".to_string(),
+                "repo2".to_string(),
+                "repo3".to_string()
+            ])
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn rejects_enterprise_with_repository_scope() {
+        let mut input = input();
+        input.enterprise = "octo-enterprise".to_string();
+        input.repositories = "repo1".to_string();
+
+        assert!(InstallationTarget::resolve(&input).is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn rejects_repository_owner_mismatch() {
+        let error = parse_repository("octo-org", "other-org/repo").unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "repository 'other-org/repo' includes owner 'other-org', which does not match 'octo-org'"
+        );
     }
 }
