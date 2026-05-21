@@ -677,4 +677,39 @@ mod tests {
             })
         );
     }
+
+    #[wasm_bindgen_test]
+    fn deserializes_installation_metadata_response() {
+        let installation: InstallationResponse = serde_json::from_value(serde_json::json!({
+            "id": 123,
+            "app_slug": "octo-app"
+        }))
+        .unwrap();
+
+        assert_eq!(installation.id, 123);
+        assert_eq!(installation.app_slug, "octo-app");
+    }
+
+    #[wasm_bindgen_test]
+    fn output_state_round_trips_installation_metadata() {
+        let output = Output {
+            token: "ghs_token".to_string(),
+            installation_id: "123".to_string(),
+            app_slug: "octo-app".to_string(),
+        };
+        let value = serde_json::to_value(&output).unwrap();
+
+        assert_eq!(
+            value,
+            serde_json::json!({
+                "token": "ghs_token",
+                "installation_id": "123",
+                "app_slug": "octo-app"
+            })
+        );
+
+        let round_trip: Output = serde_json::from_value(value).unwrap();
+        assert_eq!(round_trip.installation_id, "123");
+        assert_eq!(round_trip.app_slug, "octo-app");
+    }
 }
