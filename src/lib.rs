@@ -588,7 +588,8 @@ mod tests {
 
     fn input() -> Input {
         Input {
-            app_id: "client-id".to_string(),
+            app_id: "legacy-app-id".to_string(),
+            client_id: "client-id".to_string(),
             private_key: "private-key".to_string(),
             github_api_url: "https://api.github.com".to_string(),
             endpoint: String::new(),
@@ -640,6 +641,58 @@ mod tests {
     #[wasm_bindgen_test]
     fn rejects_github_api_url_without_authority() {
         assert!(ApiEndpoint::from_inputs("https:///api/v3", "").is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn client_id_prefers_new_input_over_deprecated_app_id() {
+        let mut input = input();
+        input.app_id = "legacy-app-id".to_string();
+        input.client_id = "client-id".to_string();
+
+        assert_eq!(input.client_id().unwrap(), "client-id");
+    }
+
+    #[wasm_bindgen_test]
+    fn client_id_falls_back_to_deprecated_app_id() {
+        let mut input = input();
+        input.app_id = "legacy-app-id".to_string();
+        input.client_id = " ".to_string();
+
+        assert_eq!(input.client_id().unwrap(), "legacy-app-id");
+    }
+
+    #[wasm_bindgen_test]
+    fn client_id_rejects_blank_aliases() {
+        let mut input = input();
+        input.app_id = " ".to_string();
+        input.client_id = String::new();
+
+        assert_eq!(
+            input.client_id().unwrap_err().to_string(),
+            "client-id or deprecated app-id must be set to a non-empty string"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn private_key_normalizes_escaped_newlines() {
+        let mut input = input();
+        input.private_key = "-----BEGIN KEY-----\\nabc\\n-----END KEY-----".to_string();
+
+        assert_eq!(
+            input.private_key().unwrap(),
+            "-----BEGIN KEY-----\nabc\n-----END KEY-----"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn private_key_rejects_blank_value() {
+        let mut input = input();
+        input.private_key = " ".to_string();
+
+        assert_eq!(
+            input.private_key().unwrap_err().to_string(),
+            "private-key must be set to a non-empty string"
+        );
     }
 
     #[wasm_bindgen_test]
