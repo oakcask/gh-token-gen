@@ -301,7 +301,7 @@ impl InstallationTarget {
 
 fn parse_repositories(input: &str) -> Vec<String> {
     input
-        .split(|c| c == ',' || c == '\n')
+        .split([',', '\n'])
         .map(str::trim)
         .filter(|repository| !repository.is_empty())
         .map(ToString::to_string)
