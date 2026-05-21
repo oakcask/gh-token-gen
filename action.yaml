@@ -14,6 +14,15 @@ inputs:
   endpoint:
     default: ""
     description: Deprecated alias for github-api-url
+  owner:
+    default: ""
+    description: The owner of the GitHub App installation
+  repositories:
+    default: ""
+    description: Comma or newline-separated list of repositories to grant access to
+  enterprise:
+    default: ""
+    description: The slug of the enterprise account where the GitHub App is installed
 outputs:
   token:
     description: Generated token
