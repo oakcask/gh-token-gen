@@ -465,7 +465,10 @@ impl RemoveAccessTokenRequest {
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", USER_AGENT)
             .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("Authorization", format!("token {}", self.token))
+            .header(
+                "Authorization",
+                access_token_authorization_header(&self.token),
+            )
             .send()
             .await
             .map_err(Error::new)?;
@@ -482,6 +485,10 @@ fn token_expired(expires_at: &str) -> bool {
     chrono::DateTime::parse_from_rfc3339(expires_at)
         .map(|expires_at| expires_at.timestamp() <= unix_now())
         .unwrap_or(false)
+}
+
+fn access_token_authorization_header(token: &str) -> String {
+    format!("Bearer {token}")
 }
 
 fn permissions_from_inputs() -> Option<BTreeMap<String, String>> {
@@ -761,5 +768,13 @@ mod tests {
         assert!(token_expired("2000-01-01T00:00:00Z"));
         assert!(!token_expired("2999-01-01T00:00:00Z"));
         assert!(!token_expired("not-a-timestamp"));
+    }
+
+    #[wasm_bindgen_test]
+    fn formats_installation_token_authorization_header() {
+        assert_eq!(
+            access_token_authorization_header("ghs_token"),
+            "Bearer ghs_token"
+        );
     }
 }
