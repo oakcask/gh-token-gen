@@ -8,9 +8,12 @@ inputs:
   private-key:
     required: true
     description: "The application's PEM-encoded private key"
-  endpoint:
+  github-api-url:
     default: "https://api.github.com"
-    description: GitHub API endpoint; override this for GHES
+    description: GitHub API URL; override this for GHES
+  endpoint:
+    default: ""
+    description: Deprecated alias for github-api-url
 outputs:
   token:
     description: Generated token

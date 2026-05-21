@@ -1,5 +1,5 @@
 use base64ct::{Base64UrlUnpadded, Encoding};
-use http::Uri;
+use http::{uri::Authority, Uri};
 use log::error;
 mod sign;
 use serde::{Deserialize, Serialize};
@@ -40,7 +40,7 @@ impl Action<Input, Output> for GhTokenGen {
         add_mask(&authorization_header);
 
         let access_token = AccessTokenBuilder {
-            endpoint: Uri::try_from(input.endpoint).map_err(Error::new)?,
+            endpoint: ApiEndpoint::from_inputs(&input.github_api_url, &input.endpoint)?,
             repo: input.repo,
             authorization_header,
             client: reqwest::Client::new(),
@@ -56,7 +56,7 @@ impl Action<Input, Output> for GhTokenGen {
 
     async fn post(input: Input, state: Output) -> Result<(), Error> {
         RemoveAccessTokenRequest {
-            endpoint: Uri::try_from(input.endpoint).map_err(Error::new)?,
+            endpoint: ApiEndpoint::from_inputs(&input.github_api_url, &input.endpoint)?,
             installation_id: state.installation_id,
             token: state.token,
             client: reqwest::Client::new(),
@@ -81,13 +81,71 @@ struct Input {
     )]
     private_key: String,
     #[input(
-        name = "endpoint",
+        name = "github-api-url",
         default = "https://api.github.com",
-        description = "GitHub API endpoint; override this for GHES"
+        description = "GitHub API URL; override this for GHES"
+    )]
+    github_api_url: String,
+    #[input(
+        name = "endpoint",
+        default = "",
+        description = "Deprecated alias for github-api-url"
     )]
     endpoint: String,
     #[input(env = "GITHUB_REPOSITORY")]
     repo: String,
+}
+
+#[derive(Clone)]
+struct ApiEndpoint {
+    scheme: String,
+    authority: Authority,
+    base_path: String,
+}
+
+impl ApiEndpoint {
+    fn from_inputs(github_api_url: &str, endpoint: &str) -> Result<Self, Error> {
+        let value = if endpoint.trim().is_empty() {
+            github_api_url
+        } else {
+            endpoint
+        };
+        Self::parse(value)
+    }
+
+    fn parse(value: &str) -> Result<Self, Error> {
+        let uri = Uri::try_from(value.trim()).map_err(Error::new)?;
+        let scheme = uri
+            .scheme()
+            .ok_or_else(|| Error::from("github-api-url must contain scheme"))?
+            .as_str()
+            .to_string();
+        let authority = uri
+            .authority()
+            .ok_or_else(|| Error::from("github-api-url must contain authority"))?
+            .clone();
+        let base_path = uri
+            .path_and_query()
+            .map(|path| path.path().trim_end_matches('/').to_string())
+            .filter(|path| !path.is_empty() && path != "/")
+            .unwrap_or_default();
+
+        Ok(Self {
+            scheme,
+            authority,
+            base_path,
+        })
+    }
+
+    fn uri(&self, path: &str) -> Result<Uri, Error> {
+        let path = format!("{}{}", self.base_path, path);
+        Uri::builder()
+            .scheme(self.scheme.as_str())
+            .authority(self.authority.as_str())
+            .path_and_query(path)
+            .build()
+            .map_err(Error::new)
+    }
 }
 
 #[derive(ActionOutput, serde::Serialize, serde::Deserialize)]
@@ -123,7 +181,7 @@ impl JwtBuilder {
 }
 
 struct AccessTokenBuilder {
-    endpoint: Uri,
+    endpoint: ApiEndpoint,
     repo: String,
     authorization_header: String,
     client: reqwest::Client,
@@ -153,29 +211,9 @@ struct AccessToken {
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 impl AccessTokenBuilder {
-    fn uri_builder(&self) -> Result<http::uri::Builder, Error> {
-        Ok(Uri::builder()
-            .scheme(
-                self.endpoint
-                    .scheme()
-                    .ok_or_else(|| Error::from("endpoint (GITHUB_API_URL) must contain scheme"))?
-                    .as_str(),
-            )
-            .authority(
-                self.endpoint
-                    .authority()
-                    .ok_or_else(|| Error::from("endpoint (GITHUB_API_URL) must contain authority"))?
-                    .as_str(),
-            ))
-    }
-
     async fn get_installation_id(&self) -> Result<u64, Error> {
         let path = format!("/repos/{}/installation", self.repo);
-        let api = self
-            .uri_builder()?
-            .path_and_query(path)
-            .build()
-            .map_err(Error::new)?;
+        let api = self.endpoint.uri(&path)?;
 
         let res = self
             .client
@@ -201,11 +239,7 @@ impl AccessTokenBuilder {
         let reponame = self.repo.split('/').nth(1).unwrap();
         let installation_id = self.get_installation_id().await?;
         let path = format!("/app/installations/{}/access_tokens", installation_id);
-        let api = self
-            .uri_builder()?
-            .path_and_query(path)
-            .build()
-            .map_err(Error::new)?;
+        let api = self.endpoint.uri(&path)?;
 
         let body = AccessTokenRequest {
             repositories: [reponame],
@@ -237,7 +271,7 @@ impl AccessTokenBuilder {
 }
 
 struct RemoveAccessTokenRequest {
-    endpoint: Uri,
+    endpoint: ApiEndpoint,
     token: String,
     installation_id: u64,
     client: reqwest::Client,
@@ -246,22 +280,7 @@ struct RemoveAccessTokenRequest {
 impl RemoveAccessTokenRequest {
     async fn execute(self) -> Result<(), Error> {
         let path = format!("/app/installations/{}/access_tokens", self.installation_id);
-        let api = Uri::builder()
-            .scheme(
-                self.endpoint
-                    .scheme()
-                    .expect("endpoint (GITHUB_API_URL) must contain scheme")
-                    .as_str(),
-            )
-            .authority(
-                self.endpoint
-                    .authority()
-                    .expect("endpoint (GITHUB_API_URL) must contain authority")
-                    .as_str(),
-            )
-            .path_and_query(path)
-            .build()
-            .map_err(Error::new)?;
+        let api = self.endpoint.uri(&path)?;
 
         let _ = self
             .client
