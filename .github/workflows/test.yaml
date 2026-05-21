@@ -83,9 +83,14 @@ jobs:
         run: GITHUB_STATE=${GITHUB_OUTPUT} node index.cjs
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
+          INPUT_CLIENT-ID: ""
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
           INPUT_GITHUB-API-URL: "https://api.github.com"
           INPUT_ENDPOINT: "https://api.github.com"
+          INPUT_OWNER: ""
+          INPUT_REPOSITORIES: ""
+          INPUT_ENTERPRISE: ""
+          INPUT_SKIP-TOKEN-REVOKE: "false"
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
@@ -99,8 +104,13 @@ jobs:
         if: always() && ${{ steps.generate-token.outputs.wasm_actions != '' }}
         env:
           INPUT_APP-ID: ${{ secrets.CLIENT_ID }}
+          INPUT_CLIENT-ID: ""
           INPUT_PRIVATE-KEY: ${{ secrets.PRIVATE_KEY }}
           INPUT_GITHUB-API-URL: "https://api.github.com"
           INPUT_ENDPOINT: "https://api.github.com"
+          INPUT_OWNER: ""
+          INPUT_REPOSITORIES: ""
+          INPUT_ENTERPRISE: ""
+          INPUT_SKIP-TOKEN-REVOKE: "false"
           # https://github.com/oakcask/wasm-actions/blob/afa65246b280183200c711b64b69c507837b0449/crates/derive/src/codegen.rs#L112
           STATE_WASM_ACTIONS: ${{ steps.generate-token.outputs.wasm_actions }}     
