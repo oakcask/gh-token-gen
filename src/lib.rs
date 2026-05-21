@@ -276,18 +276,19 @@ impl InstallationTarget {
         })
     }
 
-    fn installation_path(&self) -> String {
+    fn installation_paths(&self) -> Vec<String> {
         match self {
             Self::Enterprise { enterprise } => {
-                format!("/enterprises/{enterprise}/installation")
+                vec![format!("/enterprises/{enterprise}/installation")]
             }
-            Self::Owner { owner } => format!("/users/{owner}/installation"),
+            Self::Owner { owner } => vec![
+                format!("/orgs/{owner}/installation"),
+                format!("/users/{owner}/installation"),
+            ],
             Self::Repository {
                 owner,
                 repositories,
-            } => {
-                format!("/repos/{owner}/{}/installation", repositories[0])
-            }
+            } => vec![format!("/repos/{owner}/{}/installation", repositories[0])],
         }
     }
 
@@ -348,27 +349,38 @@ const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VE
 
 impl AccessTokenBuilder {
     async fn get_installation_id(&self) -> Result<u64, Error> {
-        let path = self.target.installation_path();
-        let api = self.endpoint.uri(&path)?;
+        let paths = self.target.installation_paths();
 
-        let res = self
-            .client
-            .get(api.to_string())
-            .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", USER_AGENT)
-            .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("Authorization", self.authorization_header.clone())
-            .send()
-            .await
-            .map_err(|e| Error::from(e.to_string()))?;
+        for (index, path) in paths.iter().enumerate() {
+            let api = self.endpoint.uri(path)?;
+            let res = self
+                .client
+                .get(api.to_string())
+                .header("Accept", "application/vnd.github+json")
+                .header("User-Agent", USER_AGENT)
+                .header("X-GitHub-Api-Version", "2022-11-28")
+                .header("Authorization", self.authorization_header.clone())
+                .send()
+                .await
+                .map_err(|e| Error::from(e.to_string()))?;
 
-        if let Err(e) = res.error_for_status_ref() {
-            error!("{:?}", res.bytes().await.map_err(Error::new)?);
-            Err(Error::new(e))
-        } else {
+            if let Err(e) = res.error_for_status_ref() {
+                let status = e.status();
+                let message = e.to_string();
+                let has_next_path = index + 1 < paths.len();
+                if status == Some(reqwest::StatusCode::NOT_FOUND) && has_next_path {
+                    continue;
+                }
+
+                error!("{:?}", res.bytes().await.map_err(Error::new)?);
+                return Err(Error::from(message));
+            }
+
             let res: InstallationResponse = res.json().await.map_err(Error::new)?;
-            Ok(res.id)
+            return Ok(res.id);
         }
+
+        Err(Error::from("installation could not be resolved"))
     }
 
     async fn build(self) -> Result<AccessToken, Error> {
@@ -504,8 +516,8 @@ mod tests {
         let target = InstallationTarget::resolve(&input()).unwrap();
 
         assert_eq!(
-            target.installation_path(),
-            "/repos/owner/current/installation"
+            target.installation_paths(),
+            vec!["/repos/owner/current/installation".to_string()]
         );
         assert_eq!(target.repository_names(), Some(vec!["current".to_string()]));
     }
@@ -517,7 +529,13 @@ mod tests {
 
         let target = InstallationTarget::resolve(&input).unwrap();
 
-        assert_eq!(target.installation_path(), "/users/octo-org/installation");
+        assert_eq!(
+            target.installation_paths(),
+            vec![
+                "/orgs/octo-org/installation".to_string(),
+                "/users/octo-org/installation".to_string()
+            ]
+        );
         assert_eq!(target.repository_names(), None);
     }
 
@@ -530,8 +548,8 @@ mod tests {
         let target = InstallationTarget::resolve(&input).unwrap();
 
         assert_eq!(
-            target.installation_path(),
-            "/repos/octo-org/repo1/installation"
+            target.installation_paths(),
+            vec!["/repos/octo-org/repo1/installation".to_string()]
         );
         assert_eq!(
             target.repository_names(),
