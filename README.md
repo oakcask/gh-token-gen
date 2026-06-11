@@ -31,6 +31,34 @@ For GitHub Enterprise Server, set `github-api-url` explicitly:
 
 The legacy `endpoint` input is still accepted as an alias for `github-api-url`.
 
+Set `owner` to create a token for every repository in that installation:
+
+```yaml
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v4
+        with:
+          app-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+```
+
+Set `owner` and `repositories` to create a token scoped to selected repositories:
+
+```yaml
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v4
+        with:
+          app-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            repo1
+            repo2
+```
+
+Set `enterprise` to create a token for an enterprise installation. `enterprise`
+cannot be combined with `owner` or `repositories`.
+
 Please check out [action.yaml](./action.yaml) for further explanation of parameters.
 To utilize this GitHub Action,
 it is required to [setup a GitHub App][setup] and [generate a private key][generate] for the app.

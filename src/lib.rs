@@ -31,6 +31,8 @@ impl GhTokenGen {
 
 impl Action<Input, Output> for GhTokenGen {
     async fn main(input: Input) -> Result<Output, Error> {
+        let endpoint = ApiEndpoint::from_inputs(&input.github_api_url, &input.endpoint)?;
+        let target = InstallationTarget::resolve(&input)?;
         let authorization_header = JwtBuilder {
             payload: Self::create_payload(input.app_id)?,
             pkey: input.private_key,
@@ -40,8 +42,8 @@ impl Action<Input, Output> for GhTokenGen {
         add_mask(&authorization_header);
 
         let access_token = AccessTokenBuilder {
-            endpoint: ApiEndpoint::from_inputs(&input.github_api_url, &input.endpoint)?,
-            repo: input.repo,
+            endpoint,
+            target,
             authorization_header,
             client: reqwest::Client::new(),
         }
@@ -92,8 +94,28 @@ struct Input {
         description = "Deprecated alias for github-api-url"
     )]
     endpoint: String,
+    #[input(
+        name = "owner",
+        default = "",
+        description = "The owner of the GitHub App installation"
+    )]
+    owner: String,
+    #[input(
+        name = "repositories",
+        default = "",
+        description = "Comma or newline-separated list of repositories to grant access to"
+    )]
+    repositories: String,
+    #[input(
+        name = "enterprise",
+        default = "",
+        description = "The slug of the enterprise account where the GitHub App is installed"
+    )]
+    enterprise: String,
     #[input(env = "GITHUB_REPOSITORY")]
     repo: String,
+    #[input(env = "GITHUB_REPOSITORY_OWNER")]
+    repo_owner: String,
 }
 
 #[derive(Clone)]
@@ -182,9 +204,123 @@ impl JwtBuilder {
 
 struct AccessTokenBuilder {
     endpoint: ApiEndpoint,
-    repo: String,
+    target: InstallationTarget,
     authorization_header: String,
     client: reqwest::Client,
+}
+
+enum InstallationTarget {
+    Enterprise {
+        enterprise: String,
+    },
+    Owner {
+        owner: String,
+    },
+    Repository {
+        owner: String,
+        repositories: Vec<String>,
+    },
+}
+
+impl InstallationTarget {
+    fn resolve(input: &Input) -> Result<Self, Error> {
+        let enterprise = input.enterprise.trim();
+        let owner = input.owner.trim();
+        let repositories = parse_repositories(&input.repositories);
+
+        if !enterprise.is_empty() {
+            if !owner.is_empty() || !repositories.is_empty() {
+                return Err(Error::from(
+                    "enterprise cannot be used with owner or repositories",
+                ));
+            }
+            return Ok(Self::Enterprise {
+                enterprise: enterprise.to_string(),
+            });
+        }
+
+        if owner.is_empty() && repositories.is_empty() {
+            let (owner, repo) = input
+                .repo
+                .split_once('/')
+                .ok_or_else(|| Error::from("GITHUB_REPOSITORY must be '<owner>/<repo>'"))?;
+            return Ok(Self::Repository {
+                owner: owner.to_string(),
+                repositories: vec![repo.to_string()],
+            });
+        }
+
+        if !owner.is_empty() && repositories.is_empty() {
+            return Ok(Self::Owner {
+                owner: owner.to_string(),
+            });
+        }
+
+        let owner = if owner.is_empty() {
+            input.repo_owner.trim()
+        } else {
+            owner
+        };
+        if owner.is_empty() {
+            return Err(Error::from("owner could not be resolved"));
+        }
+
+        let repositories = repositories
+            .into_iter()
+            .map(|repository| parse_repository(owner, &repository))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self::Repository {
+            owner: owner.to_string(),
+            repositories,
+        })
+    }
+
+    fn installation_paths(&self) -> Vec<String> {
+        match self {
+            Self::Enterprise { enterprise } => {
+                vec![format!("/enterprises/{enterprise}/installation")]
+            }
+            Self::Owner { owner } => vec![
+                format!("/orgs/{owner}/installation"),
+                format!("/users/{owner}/installation"),
+            ],
+            Self::Repository {
+                owner,
+                repositories,
+            } => vec![format!("/repos/{owner}/{}/installation", repositories[0])],
+        }
+    }
+
+    fn repository_names(&self) -> Option<Vec<String>> {
+        match self {
+            Self::Repository { repositories, .. } => Some(repositories.clone()),
+            Self::Enterprise { .. } | Self::Owner { .. } => None,
+        }
+    }
+}
+
+fn parse_repositories(input: &str) -> Vec<String> {
+    input
+        .split([',', '\n'])
+        .map(str::trim)
+        .filter(|repository| !repository.is_empty())
+        .map(ToString::to_string)
+        .collect()
+}
+
+fn parse_repository(owner: &str, input: &str) -> Result<String, Error> {
+    match input.split_once('/') {
+        Some((repo_owner, repo)) if repo_owner.is_empty() || repo.is_empty() => Err(Error::from(
+            format!("invalid repository '{input}', expected 'repository' or 'owner/repository'"),
+        )),
+        Some((repo_owner, repo)) if repo_owner.eq_ignore_ascii_case(owner) => Ok(repo.to_string()),
+        Some((repo_owner, _)) => Err(Error::from(format!(
+            "repository '{input}' includes owner '{repo_owner}', which does not match '{owner}'"
+        ))),
+        None if !input.is_empty() => Ok(input.to_string()),
+        None => Err(Error::from("repository name cannot be empty")),
+    }
 }
 
 #[derive(Deserialize)]
@@ -193,8 +329,9 @@ struct InstallationResponse {
 }
 
 #[derive(Serialize)]
-struct AccessTokenRequest<'a> {
-    repositories: [&'a str; 1],
+struct AccessTokenRequest {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    repositories: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -212,37 +349,47 @@ const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VE
 
 impl AccessTokenBuilder {
     async fn get_installation_id(&self) -> Result<u64, Error> {
-        let path = format!("/repos/{}/installation", self.repo);
-        let api = self.endpoint.uri(&path)?;
+        let paths = self.target.installation_paths();
 
-        let res = self
-            .client
-            .get(api.to_string())
-            .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", USER_AGENT)
-            .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("Authorization", self.authorization_header.clone())
-            .send()
-            .await
-            .map_err(|e| Error::from(e.to_string()))?;
+        for (index, path) in paths.iter().enumerate() {
+            let api = self.endpoint.uri(path)?;
+            let res = self
+                .client
+                .get(api.to_string())
+                .header("Accept", "application/vnd.github+json")
+                .header("User-Agent", USER_AGENT)
+                .header("X-GitHub-Api-Version", "2022-11-28")
+                .header("Authorization", self.authorization_header.clone())
+                .send()
+                .await
+                .map_err(|e| Error::from(e.to_string()))?;
 
-        if let Err(e) = res.error_for_status_ref() {
-            error!("{:?}", res.bytes().await.map_err(Error::new)?);
-            Err(Error::new(e))
-        } else {
+            if let Err(e) = res.error_for_status_ref() {
+                let status = e.status();
+                let message = e.to_string();
+                let has_next_path = index + 1 < paths.len();
+                if status == Some(reqwest::StatusCode::NOT_FOUND) && has_next_path {
+                    continue;
+                }
+
+                error!("{:?}", res.bytes().await.map_err(Error::new)?);
+                return Err(Error::from(message));
+            }
+
             let res: InstallationResponse = res.json().await.map_err(Error::new)?;
-            Ok(res.id)
+            return Ok(res.id);
         }
+
+        Err(Error::from("installation could not be resolved"))
     }
 
     async fn build(self) -> Result<AccessToken, Error> {
-        let reponame = self.repo.split('/').nth(1).unwrap();
         let installation_id = self.get_installation_id().await?;
         let path = format!("/app/installations/{}/access_tokens", installation_id);
         let api = self.endpoint.uri(&path)?;
 
         let body = AccessTokenRequest {
-            repositories: [reponame],
+            repositories: self.target.repository_names(),
         };
         let res = self
             .client
@@ -309,6 +456,20 @@ mod tests {
     use super::*;
     use wasm_bindgen_test::wasm_bindgen_test;
 
+    fn input() -> Input {
+        Input {
+            app_id: "client-id".to_string(),
+            private_key: "private-key".to_string(),
+            github_api_url: "https://api.github.com".to_string(),
+            endpoint: String::new(),
+            owner: String::new(),
+            repositories: String::new(),
+            enterprise: String::new(),
+            repo: "owner/current".to_string(),
+            repo_owner: "owner".to_string(),
+        }
+    }
+
     #[wasm_bindgen_test]
     fn parses_default_github_api_url() {
         let endpoint = ApiEndpoint::from_inputs("https://api.github.com", "").unwrap();
@@ -348,5 +509,74 @@ mod tests {
     #[wasm_bindgen_test]
     fn rejects_github_api_url_without_authority() {
         assert!(ApiEndpoint::from_inputs("https:///api/v3", "").is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn resolves_current_repository_target_by_default() {
+        let target = InstallationTarget::resolve(&input()).unwrap();
+
+        assert_eq!(
+            target.installation_paths(),
+            vec!["/repos/owner/current/installation".to_string()]
+        );
+        assert_eq!(target.repository_names(), Some(vec!["current".to_string()]));
+    }
+
+    #[wasm_bindgen_test]
+    fn resolves_owner_target_without_repository_scope() {
+        let mut input = input();
+        input.owner = "octo-org".to_string();
+
+        let target = InstallationTarget::resolve(&input).unwrap();
+
+        assert_eq!(
+            target.installation_paths(),
+            vec![
+                "/orgs/octo-org/installation".to_string(),
+                "/users/octo-org/installation".to_string()
+            ]
+        );
+        assert_eq!(target.repository_names(), None);
+    }
+
+    #[wasm_bindgen_test]
+    fn resolves_repository_list_against_owner() {
+        let mut input = input();
+        input.owner = "octo-org".to_string();
+        input.repositories = "repo1, octo-org/repo2\nrepo3".to_string();
+
+        let target = InstallationTarget::resolve(&input).unwrap();
+
+        assert_eq!(
+            target.installation_paths(),
+            vec!["/repos/octo-org/repo1/installation".to_string()]
+        );
+        assert_eq!(
+            target.repository_names(),
+            Some(vec![
+                "repo1".to_string(),
+                "repo2".to_string(),
+                "repo3".to_string()
+            ])
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn rejects_enterprise_with_repository_scope() {
+        let mut input = input();
+        input.enterprise = "octo-enterprise".to_string();
+        input.repositories = "repo1".to_string();
+
+        assert!(InstallationTarget::resolve(&input).is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn rejects_repository_owner_mismatch() {
+        let error = parse_repository("octo-org", "other-org/repo").unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "repository 'other-org/repo' includes owner 'other-org', which does not match 'octo-org'"
+        );
     }
 }
