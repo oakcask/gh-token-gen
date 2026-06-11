@@ -75,6 +75,8 @@ Please check out [action.yaml](./action.yaml) for further explanation of paramet
 To utilize this GitHub Action,
 it is required to [setup a GitHub App][setup] and [generate a private key][generate] for the app.
 
+The action outputs `token`, `installation-id`, and `app-slug`.
+
 [setup]: https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps
 [generate]: https://docs.github.com/en/enterprise-cloud@latest/apps/creating-github-apps/authenticating-with-a-github-app/managing-private-keys-for-github-apps
 
