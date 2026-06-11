@@ -38,7 +38,7 @@ fn pkcs1_to_pkcs8(data: &str) -> Result<Vec<u8>, Error> {
     use rsa::pkcs8::EncodePrivateKey;
     let pkcs1 = rsa::RsaPrivateKey::from_pkcs1_pem(data).map_err(Error::new)?;
     let pkcs8 = pkcs1
-        .to_pkcs8_pem(pkcs8::LineEnding::LF)
+        .to_pkcs8_pem(rsa::pkcs8::LineEnding::LF)
         .map_err(Error::new)?;
     Ok(Pem::from_str(&pkcs8).map_err(Error::new)?.into_contents())
 }
