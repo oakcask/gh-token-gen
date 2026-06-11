@@ -29,6 +29,168 @@ inputs:
   skip-token-revoke:
     default: "false"
     description: "If true, the token will not be revoked when the current job is complete"
+  permission-actions:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-administration:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-artifact-metadata:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-attestations:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-checks:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-codespaces:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-contents:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-custom-properties-for-organizations:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-dependabot-secrets:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-deployments:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-discussions:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-email-addresses:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-enterprise-custom-properties-for-organizations:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-environments:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-followers:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-git-ssh-keys:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-gpg-keys:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-interaction-limits:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-issues:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-members:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-merge-queues:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-metadata:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-administration:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-announcement-banners:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-copilot-seat-management:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-custom-org-roles:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-custom-properties:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-custom-roles:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-events:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-hooks:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-packages:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-personal-access-token-requests:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-personal-access-tokens:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-plan:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-projects:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-secrets:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-self-hosted-runners:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-organization-user-blocking:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-packages:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-pages:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-profile:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-pull-requests:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-repository-custom-properties:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-repository-hooks:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-repository-projects:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-secret-scanning-alerts:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-secrets:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-security-events:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-single-file:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-starring:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-statuses:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-team-discussions:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-vulnerability-alerts:
+    default: ""
+    description: GitHub App permission level to grant to the access token
+  permission-workflows:
+    default: ""
+    description: GitHub App permission level to grant to the access token
 outputs:
   token:
     description: Generated token
