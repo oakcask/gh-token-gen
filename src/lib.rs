@@ -4,9 +4,10 @@ use log::error;
 mod sign;
 use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
+use std::collections::BTreeMap;
 use wasm_actions::{
     derive::{wasm_action, ActionInput, ActionOutput},
-    prelude::{add_mask, derive::Action, Error},
+    prelude::{add_mask, derive::Action, env, Error},
 };
 
 #[wasm_action(
@@ -44,6 +45,7 @@ impl Action<Input, Output> for GhTokenGen {
         let access_token = AccessTokenBuilder {
             endpoint,
             target,
+            permissions: permissions_from_inputs(),
             authorization_header,
             client: reqwest::Client::new(),
         }
@@ -205,6 +207,7 @@ impl JwtBuilder {
 struct AccessTokenBuilder {
     endpoint: ApiEndpoint,
     target: InstallationTarget,
+    permissions: Option<BTreeMap<String, String>>,
     authorization_header: String,
     client: reqwest::Client,
 }
@@ -332,6 +335,8 @@ struct InstallationResponse {
 struct AccessTokenRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     repositories: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    permissions: Option<BTreeMap<String, String>>,
 }
 
 #[derive(Deserialize)]
@@ -390,6 +395,7 @@ impl AccessTokenBuilder {
 
         let body = AccessTokenRequest {
             repositories: self.target.repository_names(),
+            permissions: self.permissions,
         };
         let res = self
             .client
@@ -440,6 +446,35 @@ impl RemoveAccessTokenRequest {
             .await
             .map_err(Error::new)?;
         Ok(())
+    }
+}
+
+fn permissions_from_inputs() -> Option<BTreeMap<String, String>> {
+    permissions_from_vars(env::vars())
+}
+
+fn permissions_from_vars(
+    vars: impl IntoIterator<Item = (String, String)>,
+) -> Option<BTreeMap<String, String>> {
+    let permissions = vars
+        .into_iter()
+        .filter_map(|(key, value)| {
+            let permission = key.strip_prefix("INPUT_PERMISSION-")?;
+            if value.trim().is_empty() {
+                return None;
+            }
+
+            Some((
+                permission.to_ascii_lowercase().replace('-', "_"),
+                value.trim().to_string(),
+            ))
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    if permissions.is_empty() {
+        None
+    } else {
+        Some(permissions)
     }
 }
 
@@ -577,6 +612,61 @@ mod tests {
         assert_eq!(
             error.to_string(),
             "repository 'other-org/repo' includes owner 'other-org', which does not match 'octo-org'"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn normalizes_permission_inputs_from_environment_names() {
+        let permissions = permissions_from_vars([
+            (
+                "INPUT_PERMISSION-CONTENTS".to_string(),
+                " read ".to_string(),
+            ),
+            (
+                "INPUT_PERMISSION-PULL-REQUESTS".to_string(),
+                "write".to_string(),
+            ),
+            ("INPUT_PERMISSION-ISSUES".to_string(), " ".to_string()),
+            ("INPUT_OWNER".to_string(), "octo-org".to_string()),
+        ])
+        .unwrap();
+
+        assert_eq!(permissions.get("contents"), Some(&"read".to_string()));
+        assert_eq!(permissions.get("pull_requests"), Some(&"write".to_string()));
+        assert!(!permissions.contains_key("issues"));
+        assert!(!permissions.contains_key("owner"));
+    }
+
+    #[wasm_bindgen_test]
+    fn omits_permissions_when_no_permission_inputs_are_set() {
+        assert_eq!(
+            permissions_from_vars([
+                ("INPUT_PERMISSION-CONTENTS".to_string(), String::new()),
+                ("INPUT_OWNER".to_string(), "octo-org".to_string()),
+            ]),
+            None
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn serializes_access_token_request_with_permissions() {
+        let mut permissions = BTreeMap::new();
+        permissions.insert("contents".to_string(), "read".to_string());
+        permissions.insert("pull_requests".to_string(), "write".to_string());
+        let body = AccessTokenRequest {
+            repositories: Some(vec!["repo".to_string()]),
+            permissions: Some(permissions),
+        };
+
+        assert_eq!(
+            serde_json::to_value(body).unwrap(),
+            serde_json::json!({
+                "repositories": ["repo"],
+                "permissions": {
+                    "contents": "read",
+                    "pull_requests": "write"
+                }
+            })
         );
     }
 }
