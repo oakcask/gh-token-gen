@@ -379,7 +379,6 @@ dependencies = [
  "http",
  "log",
  "pem",
- "pkcs1",
  "pkcs8 0.11.0",
  "reqwest",
  "rsa",
