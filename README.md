@@ -18,7 +18,7 @@ jobs:
           private-key: ${{ secrets.PRIVATE_KEY }}
 ```
 
-For GitHub Enterprise Server, set `endpoint` explicitly:
+For GitHub Enterprise Server, set `github-api-url` explicitly:
 
 ```yaml
       - id: gh-token-gen
@@ -26,8 +26,10 @@ For GitHub Enterprise Server, set `endpoint` explicitly:
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
-          endpoint: https://github.example.com/api/v3
+          github-api-url: https://github.example.com/api/v3
 ```
+
+The legacy `endpoint` input is still accepted as an alias for `github-api-url`.
 
 Please check out [action.yaml](./action.yaml) for further explanation of parameters.
 To utilize this GitHub Action,
