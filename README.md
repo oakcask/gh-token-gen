@@ -71,6 +71,9 @@ Set `permission-<permission name>` inputs to limit the token permissions:
           permission-pull-requests: write
 ```
 
+By default the token is revoked in the post step. Set `skip-token-revoke` to
+`true` when the token must be used after the job completes.
+
 Please check out [action.yaml](./action.yaml) for further explanation of parameters.
 To utilize this GitHub Action,
 it is required to [setup a GitHub App][setup] and [generate a private key][generate] for the app.

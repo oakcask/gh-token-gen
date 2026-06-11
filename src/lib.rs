@@ -1,6 +1,6 @@
 use base64ct::{Base64UrlUnpadded, Encoding};
 use http::{uri::Authority, Uri};
-use log::error;
+use log::{error, warn};
 mod sign;
 use serde::{Deserialize, Serialize};
 use sign::sign_sha256;
@@ -56,14 +56,16 @@ impl Action<Input, Output> for GhTokenGen {
             token: access_token.token,
             installation_id: access_token.installation_id.to_string(),
             app_slug: access_token.app_slug,
+            expires_at: access_token.expires_at,
         })
     }
 
     async fn post(input: Input, state: Output) -> Result<(), Error> {
         RemoveAccessTokenRequest {
             endpoint: ApiEndpoint::from_inputs(&input.github_api_url, &input.endpoint)?,
-            installation_id: state.installation_id,
             token: state.token,
+            expires_at: state.expires_at,
+            skip_token_revoke: input.skip_token_revoke,
             client: reqwest::Client::new(),
         }
         .execute()
@@ -115,6 +117,12 @@ struct Input {
         description = "The slug of the enterprise account where the GitHub App is installed"
     )]
     enterprise: String,
+    #[input(
+        name = "skip-token-revoke",
+        default = "false",
+        description = "If true, the token will not be revoked when the current job is complete"
+    )]
+    skip_token_revoke: bool,
     #[input(env = "GITHUB_REPOSITORY")]
     repo: String,
     #[input(env = "GITHUB_REPOSITORY_OWNER")]
@@ -181,6 +189,7 @@ struct Output {
     installation_id: String,
     #[output(name = "app-slug", description = "GitHub App slug")]
     app_slug: String,
+    expires_at: String,
 }
 
 #[derive(Serialize)]
@@ -347,6 +356,7 @@ struct AccessTokenRequest {
 #[derive(Deserialize)]
 struct AccessTokenResponse {
     token: String,
+    expires_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -354,6 +364,7 @@ struct AccessToken {
     installation_id: u64,
     app_slug: String,
     token: String,
+    expires_at: String,
 }
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -426,6 +437,7 @@ impl AccessTokenBuilder {
                 installation_id,
                 app_slug: installation.app_slug,
                 token: res.token,
+                expires_at: res.expires_at,
             })
         }
     }
@@ -434,27 +446,49 @@ impl AccessTokenBuilder {
 struct RemoveAccessTokenRequest {
     endpoint: ApiEndpoint,
     token: String,
-    installation_id: String,
+    expires_at: String,
+    skip_token_revoke: bool,
     client: reqwest::Client,
 }
 
 impl RemoveAccessTokenRequest {
     async fn execute(self) -> Result<(), Error> {
-        let path = format!("/app/installations/{}/access_tokens", self.installation_id);
-        let api = self.endpoint.uri(&path)?;
+        if self.skip_token_revoke || token_expired(&self.expires_at) {
+            return Ok(());
+        }
 
-        let _ = self
+        let api = self.endpoint.uri("/installation/token")?;
+
+        let res = self
             .client
             .delete(api.to_string())
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", USER_AGENT)
             .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("Authorization", format!("Bearer {}", self.token))
+            .header(
+                "Authorization",
+                access_token_authorization_header(&self.token),
+            )
             .send()
             .await
             .map_err(Error::new)?;
+
+        if let Err(e) = res.error_for_status_ref() {
+            warn!("token revocation failed: {e}");
+        }
+
         Ok(())
     }
+}
+
+fn token_expired(expires_at: &str) -> bool {
+    chrono::DateTime::parse_from_rfc3339(expires_at)
+        .map(|expires_at| expires_at.timestamp() <= unix_now())
+        .unwrap_or(false)
+}
+
+fn access_token_authorization_header(token: &str) -> String {
+    format!("Bearer {token}")
 }
 
 fn permissions_from_inputs() -> Option<BTreeMap<String, String>> {
@@ -508,6 +542,7 @@ mod tests {
             owner: String::new(),
             repositories: String::new(),
             enterprise: String::new(),
+            skip_token_revoke: false,
             repo: "owner/current".to_string(),
             repo_owner: "owner".to_string(),
         }
@@ -696,6 +731,7 @@ mod tests {
             token: "ghs_token".to_string(),
             installation_id: "123".to_string(),
             app_slug: "octo-app".to_string(),
+            expires_at: "2999-01-01T00:00:00Z".to_string(),
         };
         let value = serde_json::to_value(&output).unwrap();
 
@@ -704,12 +740,41 @@ mod tests {
             serde_json::json!({
                 "token": "ghs_token",
                 "installation_id": "123",
-                "app_slug": "octo-app"
+                "app_slug": "octo-app",
+                "expires_at": "2999-01-01T00:00:00Z"
             })
         );
 
         let round_trip: Output = serde_json::from_value(value).unwrap();
         assert_eq!(round_trip.installation_id, "123");
         assert_eq!(round_trip.app_slug, "octo-app");
+        assert_eq!(round_trip.expires_at, "2999-01-01T00:00:00Z");
+    }
+
+    #[wasm_bindgen_test]
+    fn deserializes_access_token_expiration() {
+        let response: AccessTokenResponse = serde_json::from_value(serde_json::json!({
+            "token": "ghs_token",
+            "expires_at": "2999-01-01T00:00:00Z"
+        }))
+        .unwrap();
+
+        assert_eq!(response.token, "ghs_token");
+        assert_eq!(response.expires_at, "2999-01-01T00:00:00Z");
+    }
+
+    #[wasm_bindgen_test]
+    fn detects_expired_tokens() {
+        assert!(token_expired("2000-01-01T00:00:00Z"));
+        assert!(!token_expired("2999-01-01T00:00:00Z"));
+        assert!(!token_expired("not-a-timestamp"));
+    }
+
+    #[wasm_bindgen_test]
+    fn formats_installation_token_authorization_header() {
+        assert_eq!(
+            access_token_authorization_header("ghs_token"),
+            "Bearer ghs_token"
+        );
     }
 }
