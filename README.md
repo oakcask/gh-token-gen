@@ -14,24 +14,72 @@ jobs:
       - id: gh-token-gen
         uses: oakcask/gh-token-gen@v4
         with:
-          app-id: ${{ secrets.CLIENT_ID }}
+          client-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
 ```
 
-For GitHub Enterprise Server, set `endpoint` explicitly:
+For GitHub Enterprise Server, set `github-api-url` explicitly:
 
 ```yaml
       - id: gh-token-gen
         uses: oakcask/gh-token-gen@v4
         with:
-          app-id: ${{ secrets.CLIENT_ID }}
+          client-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
-          endpoint: https://github.example.com/api/v3
+          github-api-url: https://github.example.com/api/v3
 ```
+
+The legacy `endpoint` input is still accepted as an alias for `github-api-url`.
+The legacy `app-id` input is still accepted as an alias for `client-id`.
+
+Set `owner` to create a token for every repository in that installation:
+
+```yaml
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v4
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+```
+
+Set `owner` and `repositories` to create a token scoped to selected repositories:
+
+```yaml
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v4
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            repo1
+            repo2
+```
+
+Set `enterprise` to create a token for an enterprise installation. `enterprise`
+cannot be combined with `owner` or `repositories`.
+
+Set `permission-<permission name>` inputs to limit the token permissions:
+
+```yaml
+      - id: gh-token-gen
+        uses: oakcask/gh-token-gen@v4
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+```
+
+By default the token is revoked in the post step. Set `skip-token-revoke` to
+`true` when the token must be used after the job completes.
 
 Please check out [action.yaml](./action.yaml) for further explanation of parameters.
 To utilize this GitHub Action,
 it is required to [setup a GitHub App][setup] and [generate a private key][generate] for the app.
+
+The action outputs `token`, `installation-id`, and `app-slug`.
 
 [setup]: https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps
 [generate]: https://docs.github.com/en/enterprise-cloud@latest/apps/creating-github-apps/authenticating-with-a-github-app/managing-private-keys-for-github-apps
