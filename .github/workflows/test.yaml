@@ -30,17 +30,17 @@ jobs:
         with:
           app-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
-      - uses: int128/update-generated-files-action@821b0e0f25930c953a1a66e48d71bf0ae6ab15b3 # v2
+      - uses: int128/update-generated-files-action@4d9ed59b1c0673b7a42be5dbb71b993f96d4beb7 # v2
         with:
           commit-message: "chore: update action.yaml and index.cjs"
           token: ${{ steps.generate-token.outputs.token }}
       - run: cargo --locked fmt
-      - uses: int128/update-generated-files-action@821b0e0f25930c953a1a66e48d71bf0ae6ab15b3 # v2
+      - uses: int128/update-generated-files-action@4d9ed59b1c0673b7a42be5dbb71b993f96d4beb7 # v2
         with:
           commit-message: "style: `cargo --locked fmt`"
           token: ${{ steps.generate-token.outputs.token }}
       - run: cargo --locked clippy --fix
-      - uses: int128/update-generated-files-action@821b0e0f25930c953a1a66e48d71bf0ae6ab15b3 # v2
+      - uses: int128/update-generated-files-action@4d9ed59b1c0673b7a42be5dbb71b993f96d4beb7 # v2
         with:
           commit-message: "fix: `cargo --locked clippy --fix`"
           token: ${{ steps.generate-token.outputs.token }}
