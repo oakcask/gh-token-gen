@@ -24,7 +24,7 @@ web-sys = { version = "0.3.97", features = [
 pem = "3.0.6"
 wasm-bindgen = { version = "0.2.120", features = ["std"] }
 wasm-bindgen-futures = "0.4.70"
-chrono = { version = "0.4.44", default-features = false, features = ["wasmbind", "js-sys", "now"] }
+chrono = { version = "0.4.45", default-features = false, features = ["wasmbind", "js-sys", "now"] }
 serde-wasm-bindgen = "0.6.5"
 rsa = { version = "0.9.10", features = ["pem"] }
 wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git", rev = "23b481ead29b6b9c8ea4fa9453d4497fc17157c4" }
