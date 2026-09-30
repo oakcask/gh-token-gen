@@ -27,7 +27,7 @@ wasm-bindgen-futures = "0.4.70"
 chrono = { version = "0.4.45", default-features = false, features = ["wasmbind", "js-sys", "now"] }
 serde-wasm-bindgen = "0.6.5"
 rsa = { version = "0.9.10", features = ["pem"] }
-wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git", rev = "50bb6cda6e045ed306581950a89aa6d136611667" }
+wasm-actions = { git = "https://github.com/oakcask/wasm-actions.git", rev = "84a47761c648d5155fe4b6d9152ee4d06aa7e742" }
 
 [dependencies.getrandom]
 version = "*"
@@ -40,4 +40,4 @@ ignored = ["getrandom"]
 wasm-bindgen-test = "0.3.70"
 
 [build-dependencies]
-wasm-actions-build = { git = "https://github.com/oakcask/wasm-actions.git", rev = "50bb6cda6e045ed306581950a89aa6d136611667" }
+wasm-actions-build = { git = "https://github.com/oakcask/wasm-actions.git", rev = "84a47761c648d5155fe4b6d9152ee4d06aa7e742" }
